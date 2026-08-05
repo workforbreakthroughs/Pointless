@@ -1,0 +1,77 @@
+{
+  "version": "1.0.0",
+  "source": "Princeton University WordNet 3.1",
+  "attribution": "WordNet 3.1 Copyright 2011 by Princeton University. All rights reserved.",
+  "totalWords": 73517,
+  "tiers": {
+    "easy": {
+      "totalWords": 6307,
+      "totalChunks": 5,
+      "files": [
+        "easy-1.json",
+        "easy-2.json",
+        "easy-3.json",
+        "easy-4.json",
+        "easy-5.json"
+      ]
+    },
+    "medium": {
+      "totalWords": 21985,
+      "totalChunks": 15,
+      "files": [
+        "medium-1.json",
+        "medium-2.json",
+        "medium-3.json",
+        "medium-4.json",
+        "medium-5.json",
+        "medium-6.json",
+        "medium-7.json",
+        "medium-8.json",
+        "medium-9.json",
+        "medium-10.json",
+        "medium-11.json",
+        "medium-12.json",
+        "medium-13.json",
+        "medium-14.json",
+        "medium-15.json"
+      ]
+    },
+    "hard": {
+      "totalWords": 45225,
+      "totalChunks": 31,
+      "files": [
+        "hard-1.json",
+        "hard-2.json",
+        "hard-3.json",
+        "hard-4.json",
+        "hard-5.json",
+        "hard-6.json",
+        "hard-7.json",
+        "hard-8.json",
+        "hard-9.json",
+        "hard-10.json",
+        "hard-11.json",
+        "hard-12.json",
+        "hard-13.json",
+        "hard-14.json",
+        "hard-15.json",
+        "hard-16.json",
+        "hard-17.json",
+        "hard-18.json",
+        "hard-19.json",
+        "hard-20.json",
+        "hard-21.json",
+        "hard-22.json",
+        "hard-23.json",
+        "hard-24.json",
+        "hard-25.json",
+        "hard-26.json",
+        "hard-27.json",
+        "hard-28.json",
+        "hard-29.json",
+        "hard-30.json",
+        "hard-31.json"
+      ]
+    }
+  }
+}

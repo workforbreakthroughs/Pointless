@@ -2,6 +2,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { GameState, GameStatus, QuestState } from './types';
 import { fetchNewWord } from './services/geminiService';
+import { getTierForLevel } from './services/wordNetService';
 import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
@@ -284,10 +285,13 @@ const App: React.FC = () => {
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
             <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>✏️</div>
             <h2 className="text-3xl sm:text-5xl font-heading text-slate-900 tracking-tight">Help Graphite.</h2>
-            <div className="bg-slate-50 p-5 sm:p-8 rounded-2xl border border-slate-200 w-full">
+            <div className="bg-slate-50 p-5 sm:p-8 rounded-2xl border border-slate-200 w-full flex flex-col items-center gap-3">
                <p className="text-slate-600 text-base sm:text-xl leading-relaxed italic">
                  "Meet Graphite. He's a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."
                </p>
+               <div className="inline-flex items-center gap-2 bg-emerald-50 text-emerald-800 border border-emerald-200 px-3.5 py-1 rounded-full text-xs font-bold">
+                 <span>📚</span> Powered by Princeton WordNet® (73,000+ Words)
+               </div>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full mt-2">
               <button onClick={() => startNewGame()} className="w-full sm:w-auto bg-slate-900 text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press border-b-4 border-black active:border-b-0 hover:bg-slate-800 transition-all">
@@ -315,7 +319,11 @@ const App: React.FC = () => {
             {/* Top Game Space (Clue & Visual) */}
             <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] md:grid-cols-[1fr_200px] gap-3 items-stretch shrink-0">
               <div className="bg-slate-50 p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-slate-200 shadow-inner flex flex-col items-center justify-center text-center">
-                <span className="inline-block bg-slate-800 text-white px-3 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1.5">{game.category}</span>
+                <span className="inline-flex items-center gap-1 bg-slate-800 text-white px-3 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1.5">
+                  <span className="text-yellow-400 font-extrabold">{getTierForLevel(game.level).toUpperCase()}</span>
+                  <span className="text-slate-500">•</span>
+                  <span>{game.category}</span>
+                </span>
                 <h2 className="text-sm sm:text-base md:text-lg font-bold text-slate-700 italic leading-snug px-2">"{game.clue}"</h2>
                 {game.powers.extraHintUsed && (
                   <div className="mt-2 p-2 bg-yellow-100 border border-yellow-300 rounded-lg text-yellow-900 font-bold text-xs sm:text-sm animate-in zoom-in">
@@ -411,7 +419,9 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
-      <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0">Pointless Studios © 2025</footer>
+      <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">
+        Pointless Studios © 2025 • WordNet 3.1 Copyright © Princeton University
+      </footer>
     </div>
   );
 };
