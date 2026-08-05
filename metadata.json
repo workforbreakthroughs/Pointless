@@ -1,0 +1,13 @@
+{
+  "name": "Pointless: Dictionary Challenge",
+  "short_name": "Pointless",
+  "description": "The sharpest word game on Earth. Save your pencil by solving word definition puzzle.",
+  "requestFramePermissions": [],
+  "theme_color": "#f8fafc",
+  "background_color": "#f8fafc",
+  "display": "standalone",
+  "orientation": "portrait",
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
