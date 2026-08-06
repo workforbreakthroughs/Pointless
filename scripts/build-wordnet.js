@@ -14,48 +14,49 @@ fs.mkdirSync(outputDir, { recursive: true });
 
 // Semantic category mapping for WordNet lexicographer files
 const LEX_NAMES = {
-  '03': 'Descriptive Terms', // adj.all
-  '04': 'Relational Terms',  // adj.pert
-  '05': 'Modifiers',         // adv.all
-  '06': 'General Concepts',  // noun.Tops
-  '07': 'Actions & Acts',    // noun.act
-  '08': 'Animals & Wildlife',// noun.animal
-  '09': 'Tools & Inventions',// noun.artifact
-  '10': 'Traits & Qualities',// noun.attribute
-  '11': 'Anatomy & Body',    // noun.body
-  '12': 'Mind & Science',    // noun.cognition
-  '13': 'Language & Terms',  // noun.communication
-  '14': 'Events & Phenomena',// noun.event
-  '15': 'Emotions & Feelings',// noun.feeling
-  '16': 'Food & Culinary',   // noun.food
-  '17': 'Groups & Collectives',// noun.group
-  '18': 'Geography & Places',// noun.location
-  '19': 'Motives & Intentions',// noun.motive
-  '20': 'Objects & Nature',  // noun.object
-  '21': 'People & Roles',    // noun.person
-  '22': 'Natural Phenomena', // noun.phenomenon
-  '23': 'Plants & Botany',   // noun.plant
-  '24': 'Wealth & Commerce', // noun.possession
-  '25': 'Processes & Science',// noun.process
-  '26': 'Math & Measurement',// noun.quantity
-  '27': 'Relations & Logic', // noun.relation
-  '28': 'Shapes & Forms',    // noun.shape
-  '29': 'States & Conditions',// noun.state
-  '30': 'Materials & Elements',// noun.substance
-  '31': 'Time & Seasons',    // noun.time
-  '32': 'Body Actions',      // verb.body
-  '33': 'Changes & Effects', // verb.change
-  '34': 'Mind & Thought',    // verb.cognition
-  '35': 'Communication',     // verb.communication
-  '36': 'Competition & Sport',// verb.competition
-  '37': 'Creation & Craft',  // verb.creation
-  '38': 'Motion & Movement', // verb.motion
-  '39': 'Perception & Sight',// verb.perception
-  '40': 'Possession & Trade',// verb.possession
-  '41': 'Social Behavior',   // verb.social
-  '42': 'Stances & States',  // verb.stative
-  '43': 'Consumption & Food',// verb.consumption
-  '44': 'Weather & Sky'      // verb.weather
+  '00': 'Descriptive Terms', // adj.all
+  '01': 'Relational Terms',  // adj.pert
+  '02': 'Modifiers',         // adv.all
+  '03': 'General Concepts',  // noun.Tops
+  '04': 'Actions & Acts',    // noun.act
+  '05': 'Animals & Wildlife',// noun.animal
+  '06': 'Tools & Inventions',// noun.artifact
+  '07': 'Traits & Qualities',// noun.attribute
+  '08': 'Anatomy & Body',    // noun.body
+  '09': 'Mind & Science',    // noun.cognition
+  '10': 'Language & Terms',  // noun.communication
+  '11': 'Events & Phenomena',// noun.event
+  '12': 'Emotions & Feelings',// noun.feeling
+  '13': 'Food & Culinary',   // noun.food
+  '14': 'Groups & Collectives',// noun.group
+  '15': 'Geography & Places',// noun.location
+  '16': 'Motives & Intentions',// noun.motive
+  '17': 'Objects & Nature',  // noun.object
+  '18': 'People & Roles',    // noun.person
+  '19': 'Natural Phenomena', // noun.phenomenon
+  '20': 'Plants & Botany',   // noun.plant
+  '21': 'Wealth & Commerce', // noun.possession
+  '22': 'Processes & Science',// noun.process
+  '23': 'Math & Measurement',// noun.quantity
+  '24': 'Relations & Logic', // noun.relation
+  '25': 'Shapes & Forms',    // noun.shape
+  '26': 'States & Conditions',// noun.state
+  '27': 'Materials & Elements',// noun.substance
+  '28': 'Time & Seasons',    // noun.time
+  '29': 'Body Actions',      // verb.body
+  '30': 'Changes & Effects', // verb.change
+  '31': 'Mind & Thought',    // verb.cognition
+  '32': 'Communication',     // verb.communication
+  '33': 'Competition & Sport',// verb.competition
+  '34': 'Consumption & Food',// verb.consumption
+  '35': 'Contact & Touch',   // verb.contact
+  '36': 'Creation & Craft',  // verb.creation
+  '37': 'Motion & Movement', // verb.motion
+  '38': 'Perception & Sight',// verb.perception
+  '39': 'Possession & Trade',// verb.possession
+  '40': 'Social Behavior',   // verb.social
+  '41': 'Stances & States',  // verb.stative
+  '42': 'Weather & Sky'      // verb.weather
 };
 
 // Profanity / Offensive blocklist
