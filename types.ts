@@ -15,9 +15,15 @@ export interface PowerState {
 }
 
 export interface QuestState {
-  streakMaster: boolean;    // 20 letters in a row (cumulative)
-  speedDemon: boolean;      // Solve 7+ letter word in < 15s
-  perfectionist: boolean;   // 3 perfect games in a row
+  streakMaster: boolean;    // 20 letters in a row (cumulative) - unlocks Lead Cinch
+  speedDemon: boolean;      // Solve 7+ letter word in < 15s - unlocks Bright Idea
+  perfectionist: boolean;   // 3 perfect games in a row - unlocks Eraser
+  wordSmithNovice: boolean; // Solve 5 total words
+  wordSmithTitan: boolean;  // Solve 20 total words
+  levelClimber: boolean;    // Reach Level 5
+  hardcoreScholar: boolean; // Solve a Hard Tier word (Level 8+)
+  comebackKid: boolean;     // Win a game with only 1 mistake left
+  pureInstinct: boolean;    // Win a game without using any power-ups
 }
 
 export interface GameState {

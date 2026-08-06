@@ -22,6 +22,18 @@ const NEWS_HEADLINES = [
   "SPORTS: 100m Dash results - Highlighter wins because he was 'brightest' off the block."
 ];
 
+const DEFAULT_QUESTS: QuestState = {
+  streakMaster: false,
+  speedDemon: false,
+  perfectionist: false,
+  wordSmithNovice: false,
+  wordSmithTitan: false,
+  levelClimber: false,
+  hardcoreScholar: false,
+  comebackKid: false,
+  pureInstinct: false,
+};
+
 const App: React.FC = () => {
   const [game, setGame] = useState<GameState>({
     status: 'IDLE',
@@ -34,7 +46,7 @@ const App: React.FC = () => {
     maxMistakes: MAX_MISTAKES,
     level: 1,
     powers: { revealLetterUsed: false, extraHintUsed: false, removeWrongUsed: false },
-    quests: { streakMaster: false, speedDemon: false, perfectionist: false },
+    quests: DEFAULT_QUESTS,
     removedLetters: [],
     timeLeft: 60,
     initialTime: 60,
@@ -48,6 +60,7 @@ const App: React.FC = () => {
   const [lastGuessWasWrong, setLastGuessWasWrong] = useState(false);
   const [showToast, setShowToast] = useState<{title: string, msg: string} | null>(null);
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
+  const [journalTab, setJournalTab] = useState<'powers' | 'trophies'>('powers');
   const timerRef = useRef<number | null>(null);
 
   const [newsIndex, setNewsIndex] = useState(0);
@@ -69,7 +82,7 @@ const App: React.FC = () => {
         setGame(prev => ({ 
           ...prev, 
           level: d.currentLevel || 1,
-          quests: d.quests || prev.quests,
+          quests: { ...DEFAULT_QUESTS, ...(d.quests || {}) },
           currentStreak: d.currentStreak || 0,
           perfectStreak: d.perfectStreak || 0
         }));
@@ -194,7 +207,40 @@ const App: React.FC = () => {
         newPerfectStreak = 0;
       }
 
-      if (!solvedWords.includes(game.word)) setSolvedWords(prev => [...prev, game.word]);
+      const updatedSolved = solvedWords.includes(game.word) ? solvedWords : [...solvedWords, game.word];
+      if (!solvedWords.includes(game.word)) setSolvedWords(updatedSolved);
+
+      // --- Non-Powerup Milestone Achievements ---
+      if (updatedSolved.length >= 5 && !game.quests.wordSmithNovice) {
+        questUpdate.wordSmithNovice = true;
+        triggerToast("TROPHY: LEXICON SCHOLAR", "Solved 5 dictionary words!");
+      }
+
+      if (updatedSolved.length >= 20 && !game.quests.wordSmithTitan) {
+        questUpdate.wordSmithTitan = true;
+        triggerToast("TROPHY: DICTIONARY TITAN", "20 words mastered! A walking encyclopedia.");
+      }
+
+      if (game.level >= 5 && !game.quests.levelClimber) {
+        questUpdate.levelClimber = true;
+        triggerToast("TROPHY: HIGH CLIMBER", "Reached Level 5 in WordNet!");
+      }
+
+      if (getTierForLevel(game.level) === 'hard' && !game.quests.hardcoreScholar) {
+        questUpdate.hardcoreScholar = true;
+        triggerToast("TROPHY: HARDCORE SCHOLAR", "Conquered a Hard Tier WordNet word!");
+      }
+
+      if (newMistakes === MAX_MISTAKES - 1 && !game.quests.comebackKid) {
+        questUpdate.comebackKid = true;
+        triggerToast("TROPHY: COMEBACK KID", "Clutched the win with only 1 mistake remaining!");
+      }
+
+      const usedPower = game.powers.revealLetterUsed || game.powers.extraHintUsed || game.powers.removeWrongUsed;
+      if (!usedPower && !game.quests.pureInstinct) {
+        questUpdate.pureInstinct = true;
+        triggerToast("TROPHY: PURE INSTINCT", "Solved a word without using any hints or power-ups!");
+      }
     } else if (newMistakes >= game.maxMistakes) {
       newStatus = 'LOST';
       newCumulativeStreak = 0;
@@ -226,40 +272,213 @@ const App: React.FC = () => {
 
       {isQuestModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#fff9e6] w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl p-5 sm:p-8 border-4 border-slate-800 relative max-h-[90vh] flex flex-col">
+          <div className="bg-[#fff9e6] w-full max-w-lg rounded-2xl sm:rounded-3xl shadow-2xl p-4 sm:p-7 border-4 border-slate-800 relative max-h-[92vh] flex flex-col">
              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-8 bg-slate-200/50 -rotate-2 z-10 rounded" />
              <button onClick={() => setIsQuestModalOpen(false)} className="absolute top-3 right-3 text-slate-400 hover:text-slate-800 transition-colors text-xl font-black p-2">✕</button>
-             <h3 className="font-heading text-xl sm:text-3xl text-slate-800 mb-3 border-b-2 border-slate-200 pb-2">Graphite's Journal</h3>
-             <div className="space-y-4 overflow-y-auto pr-1 flex-1">
-                <div className="flex gap-3 sm:gap-4 items-center">
-                   <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-xl sm:text-2xl shrink-0 ${game.quests.streakMaster ? 'bg-blue-500 text-white' : 'bg-slate-200 grayscale opacity-40'}`}>🔍</div>
-                   <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Master of Momentum</h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-tight">"Guess 20 letters in a row correctly."</p>
-                      <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                         <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${Math.min(100, (game.currentStreak/20)*100)}%` }} />
-                      </div>
-                   </div>
-                </div>
-                <div className="flex gap-3 sm:gap-4 items-center">
-                   <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-xl sm:text-2xl shrink-0 ${game.quests.speedDemon ? 'bg-amber-400 text-white' : 'bg-slate-200 grayscale opacity-40'}`}>💡</div>
-                   <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">The Blitz Thinker</h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-tight">"Solve 7+ letters in under 15s."</p>
-                   </div>
-                </div>
-                <div className="flex gap-3 sm:gap-4 items-center">
-                   <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-xl flex items-center justify-center text-xl sm:text-2xl shrink-0 ${game.quests.perfectionist ? 'bg-pink-500 text-white' : 'bg-slate-200 grayscale opacity-40'}`}>🛡️</div>
-                   <div className="flex-1 min-w-0">
-                      <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Unbroken Chain</h4>
-                      <p className="text-xs text-slate-500 mt-0.5 leading-tight">"3 perfect games in a row."</p>
-                      <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
-                         <div className="h-full bg-pink-500 transition-all duration-300" style={{ width: `${(game.perfectStreak/3)*100}%` }} />
-                      </div>
-                   </div>
-                </div>
+             
+             {/* Header & Stats Banner */}
+             <div className="mb-3 border-b-2 border-slate-200/80 pb-3 pr-8">
+               <h3 className="font-heading text-xl sm:text-2xl text-slate-900 flex items-center gap-2">
+                 <span>📖</span> Graphite's Journal
+               </h3>
+               <div className="flex items-center gap-3 mt-2 text-xs font-bold text-slate-600 bg-amber-100/60 p-2 rounded-xl border border-amber-200/60">
+                 <div className="flex items-center gap-1">
+                   <span>🏆</span> <span>Unlocked: {Object.values(game.quests).filter(Boolean).length} / {Object.keys(game.quests).length}</span>
+                 </div>
+                 <span className="text-slate-300">•</span>
+                 <div className="flex items-center gap-1">
+                   <span>📚</span> <span>Solved: {solvedWords.length} words</span>
+                 </div>
+               </div>
              </div>
-             <button onClick={() => setIsQuestModalOpen(false)} className="w-full mt-5 bg-slate-800 text-white py-3 rounded-xl font-bold uppercase tracking-wider hover:bg-black transition-colors text-sm sm:text-base shrink-0">Back to the Lab</button>
+
+             {/* Tab Bar */}
+             <div className="flex gap-2 mb-3 bg-amber-200/40 p-1 rounded-xl border border-amber-300/40 shrink-0">
+               <button 
+                 onClick={() => setJournalTab('powers')}
+                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                   journalTab === 'powers' 
+                     ? 'bg-slate-900 text-white shadow-sm' 
+                     : 'text-slate-700 hover:bg-amber-200/60'
+                 }`}
+               >
+                 <span>⚡</span> Abilities ([3])
+               </button>
+               <button 
+                 onClick={() => setJournalTab('trophies')}
+                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                   journalTab === 'trophies' 
+                     ? 'bg-slate-900 text-white shadow-sm' 
+                     : 'text-slate-700 hover:bg-amber-200/60'
+                 }`}
+               >
+                 <span>🏆</span> Hall of Fame ([6])
+               </button>
+             </div>
+
+             {/* Tab Content Area */}
+             <div className="space-y-3 overflow-y-auto pr-1 flex-1">
+               {journalTab === 'powers' ? (
+                 <>
+                   {/* Power-Up Quests */}
+                   <div className="text-[11px] font-black uppercase text-amber-800 tracking-wider mb-1">
+                     Power-Up Skill Unlocks
+                   </div>
+
+                   {/* Streak Master */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.streakMaster ? 'bg-blue-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🔍</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Master of Momentum</h4>
+                         {game.quests.streakMaster && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">UNLOCKED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Guess 20 letters in a row. Unlocks <strong className="text-slate-700">Lead Cinch</strong> power.</p>
+                       <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                         <div className="h-full bg-blue-500 transition-all duration-300" style={{ width: `${Math.min(100, (game.currentStreak / 20) * 100)}%` }} />
+                       </div>
+                     </div>
+                   </div>
+
+                   {/* Speed Demon */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.speedDemon ? 'bg-amber-400 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>💡</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">The Blitz Thinker</h4>
+                         {game.quests.speedDemon && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">UNLOCKED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Solve a 7+ letter word in &lt;15s. Unlocks <strong className="text-slate-700">Bright Idea</strong> hint power.</p>
+                     </div>
+                   </div>
+
+                   {/* Perfectionist */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.perfectionist ? 'bg-pink-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🛡️</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Unbroken Chain</h4>
+                         {game.quests.perfectionist && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">UNLOCKED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Achieve 3 perfect games in a row. Unlocks <strong className="text-slate-700">Eraser Armor</strong> shield.</p>
+                       <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                         <div className="h-full bg-pink-500 transition-all duration-300" style={{ width: `${(game.perfectStreak / 3) * 100}%` }} />
+                       </div>
+                     </div>
+                   </div>
+                 </>
+               ) : (
+                 <>
+                   {/* Non-Powerup Trophies */}
+                   <div className="text-[11px] font-black uppercase text-amber-800 tracking-wider mb-1">
+                     Milestone Badges & Feats
+                   </div>
+
+                   {/* Lexicon Scholar */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.wordSmithNovice ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>📚</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Lexicon Scholar</h4>
+                         {game.quests.wordSmithNovice ? (
+                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>
+                         ) : (
+                           <span className="text-[10px] font-bold text-slate-500">{solvedWords.length}/5 words</span>
+                         )}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Solve 5 dictionary words in total.</p>
+                       {!game.quests.wordSmithNovice && (
+                         <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                           <div className="h-full bg-emerald-500 transition-all duration-300" style={{ width: `${Math.min(100, (solvedWords.length / 5) * 100)}%` }} />
+                         </div>
+                       )}
+                     </div>
+                   </div>
+
+                   {/* Dictionary Titan */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.wordSmithTitan ? 'bg-indigo-600 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🎓</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Dictionary Titan</h4>
+                         {game.quests.wordSmithTitan ? (
+                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>
+                         ) : (
+                           <span className="text-[10px] font-bold text-slate-500">{solvedWords.length}/20 words</span>
+                         )}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Solve 20 dictionary words in total.</p>
+                       {!game.quests.wordSmithTitan && (
+                         <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                           <div className="h-full bg-indigo-600 transition-all duration-300" style={{ width: `${Math.min(100, (solvedWords.length / 20) * 100)}%` }} />
+                         </div>
+                       )}
+                     </div>
+                   </div>
+
+                   {/* High Climber */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.levelClimber ? 'bg-purple-600 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>⛰️</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">High Climber</h4>
+                         {game.quests.levelClimber ? (
+                           <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>
+                         ) : (
+                           <span className="text-[10px] font-bold text-slate-500">Lv {Math.max(game.level, bestLevel)}/5</span>
+                         )}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Reach Level 5 in WordNet.</p>
+                       {!game.quests.levelClimber && (
+                         <div className="mt-1.5 w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                           <div className="h-full bg-purple-600 transition-all duration-300" style={{ width: `${Math.min(100, (Math.max(game.level, bestLevel) / 5) * 100)}%` }} />
+                         </div>
+                       )}
+                     </div>
+                   </div>
+
+                   {/* Hardcore Scholar */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.hardcoreScholar ? 'bg-red-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🔬</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Hardcore Scholar</h4>
+                         {game.quests.hardcoreScholar && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Solve a word in the Hard Tier (Level 8+).</p>
+                     </div>
+                   </div>
+
+                   {/* Comeback Kid */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.comebackKid ? 'bg-orange-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🦸</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Comeback Kid</h4>
+                         {game.quests.comebackKid && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Win a word with only 1 mistake remaining.</p>
+                     </div>
+                   </div>
+
+                   {/* Pure Instinct */}
+                   <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 shadow-xs flex gap-3 items-center">
+                     <div className={`w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ${game.quests.pureInstinct ? 'bg-teal-500 text-white shadow-md' : 'bg-slate-200 text-slate-400 grayscale'}`}>🎯</div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex justify-between items-baseline">
+                         <h4 className="font-black text-xs sm:text-sm uppercase tracking-wider text-slate-800">Pure Instinct</h4>
+                         {game.quests.pureInstinct && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">COMPLETED</span>}
+                       </div>
+                       <p className="text-xs text-slate-500 mt-0.5 leading-tight">Solve a word without using any power-ups or extra hints.</p>
+                     </div>
+                   </div>
+                 </>
+               )}
+             </div>
+
+             <button onClick={() => setIsQuestModalOpen(false)} className="w-full mt-4 bg-slate-900 text-white py-2.5 rounded-xl font-bold uppercase tracking-wider hover:bg-black transition-colors text-xs sm:text-sm shrink-0 shadow-md">
+               Close Journal
+             </button>
           </div>
         </div>
       )}
