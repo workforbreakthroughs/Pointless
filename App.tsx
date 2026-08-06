@@ -584,7 +584,15 @@ const App: React.FC = () => {
                   }, used: game.powers.revealLetterUsed, label: 'Reveal' },
                   { q: 'speedDemon', i: '💡', c: 'amber', a: () => {
                       setGame(prev => ({ ...prev, powers: { ...prev.powers, extraHintUsed: true } }));
-                      triggerToast("HINT 💡", game.extraClue ? game.extraClue : `Category: ${game.category}`);
+                      let hintMsg = game.extraClue;
+                      if (!hintMsg || hintMsg.startsWith('Category:') || hintMsg.toLowerCase().includes(game.category.toLowerCase())) {
+                        const uWord = game.word.toUpperCase();
+                        const vowels = uWord.split('').filter(c => 'AEIOU'.includes(c)).length;
+                        const startChar = uWord.charAt(0);
+                        const endChar = uWord.charAt(uWord.length - 1);
+                        hintMsg = `${uWord.length} letters, ${vowels} vowel${vowels === 1 ? '' : 's'} (Starts with '${startChar}', ends with '${endChar}')`;
+                      }
+                      triggerToast("HINT 💡", hintMsg);
                   }, used: game.powers.extraHintUsed, label: 'Hint' },
                   { q: 'perfectionist', i: '🧹', c: 'pink', a: () => {
                       const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l) && !game.removedLetters.includes(l));

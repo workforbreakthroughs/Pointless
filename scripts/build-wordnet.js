@@ -165,8 +165,11 @@ dataFiles.forEach(file => {
       if (example) {
         cleanExtra = `Example: "${example.replace(regex, '___')}"`;
       } else {
-        const categoryName = LEX_NAMES[lexFile] || 'General Vocabulary';
-        cleanExtra = `Category: ${categoryName}`;
+        const uWord = word.toUpperCase();
+        const vowels = uWord.split('').filter(c => 'AEIOU'.includes(c)).length;
+        const startChar = uWord.charAt(0);
+        const endChar = uWord.charAt(uWord.length - 1);
+        cleanExtra = `${uWord.length} letters, ${vowels} vowel${vowels === 1 ? '' : 's'} (Starts with '${startChar}', ends with '${endChar}')`;
       }
       
       const category = LEX_NAMES[lexFile] || 'General Vocabulary';
