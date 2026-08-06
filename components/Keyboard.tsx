@@ -29,12 +29,12 @@ const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters, onG
                 onClick={() => onGuess(letter)}
                 disabled={disabled || isGuessed || isRemoved}
                 className={`
-                  h-11 sm:h-12 md:h-14 lg:h-16 flex-1 min-w-0 max-w-[36px] sm:max-w-[48px] md:max-w-[56px] lg:max-w-[64px] flex items-center justify-center rounded-lg sm:rounded-xl lg:rounded-2xl font-bold text-sm sm:text-base md:text-xl lg:text-2xl transition-all duration-150 select-none
+                  h-11 sm:h-12 md:h-14 lg:h-16 flex-1 min-w-0 max-w-[36px] sm:max-w-[48px] md:max-w-[56px] lg:max-w-[64px] flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base md:text-xl lg:text-2xl transition-all duration-150 select-none
                   ${isGuessed 
-                    ? 'bg-slate-100 text-slate-300 opacity-50 border-b-0' 
+                    ? 'bg-slate-200/50 text-slate-300 opacity-40 border border-slate-200/40' 
                     : isRemoved
-                    ? 'bg-red-50 text-red-200 opacity-20 border-b-0'
-                    : 'bg-white text-emerald-800 shadow-md border-b-2 sm:border-b-4 border-emerald-300 hover:bg-emerald-50 active:border-b-0 active:translate-y-0.5'
+                    ? 'bg-red-100/30 text-red-300 opacity-20 border border-red-200/30'
+                    : 'glass-button text-slate-900 font-black shadow-sm hover:brightness-105 active:scale-90 active:bg-slate-200/80'
                   }
                 `}
               >

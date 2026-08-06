@@ -54,7 +54,7 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
               ${sizes.box} flex items-center justify-center 
               ${sizes.text} font-heading shrink-0 box-border overflow-hidden
               ${sizes.rounded}
-              ${isRevealed && isLetter ? 'text-emerald-800 bg-emerald-50 border-emerald-300 shadow-md' : 'text-transparent bg-white border-slate-200 shadow-sm'}
+              ${isRevealed && isLetter ? 'text-slate-900 glass-card border-white/90 shadow-md' : 'text-transparent glass-card border-white/60 shadow-xs'}
               ${!isLetter ? 'bg-transparent border-transparent text-slate-400' : ''}
               transition-all duration-300 transform hover:scale-105 relative select-none
             `}
