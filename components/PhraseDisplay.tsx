@@ -22,19 +22,19 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
     } else if (wordLength <= 9) {
       return {
         container: "gap-1.5 sm:gap-2.5 lg:gap-3",
-        box: "w-7 sm:w-12 h-11 sm:h-16 md:w-14 md:h-20 lg:w-18 lg:h-24 xl:w-20 xl:h-26",
+        box: "w-8 h-12 sm:w-12 sm:h-16 md:w-14 md:h-20 lg:w-18 lg:h-24 xl:w-20 xl:h-26",
         text: "text-xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl leading-none",
-        rounded: "rounded-lg sm:rounded-2xl lg:rounded-3xl border-2 sm:border-4 lg:border-[5px]",
+        rounded: "rounded-xl sm:rounded-2xl lg:rounded-3xl border-2 sm:border-4 lg:border-[5px]",
         underline: "bottom-1 sm:bottom-2 lg:bottom-3 w-1/3 h-0.5 sm:h-1 lg:h-1.5"
       };
     } else {
-      // 10 to 14 letters - auto-scale box & gap to keep strictly on 1 row on mobile screens
+      // 10+ letters - scaled cleanly between medium and short sizes
       return {
         container: "gap-1 sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-1",
-        box: "w-5 sm:w-8 md:w-11 lg:w-13 xl:w-16 h-8 sm:h-12 md:h-16 lg:h-18 xl:h-22",
-        text: "text-xs sm:text-lg md:text-2xl lg:text-3xl xl:text-4xl leading-none",
-        rounded: "rounded-md sm:rounded-xl lg:rounded-2xl border sm:border-2 md:border-3 lg:border-4",
-        underline: "bottom-0.5 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
+        box: "w-7 h-11 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-14 lg:h-18 xl:w-16 xl:h-22",
+        text: "text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-none",
+        rounded: "rounded-lg sm:rounded-xl lg:rounded-2xl border-2 sm:border-3 lg:border-4",
+        underline: "bottom-1 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
       };
     }
   };
