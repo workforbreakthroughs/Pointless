@@ -34,6 +34,17 @@ const PencilVisual: React.FC<PencilVisualProps> = ({ mistakes, maxMistakes, stat
   };
 
   const mood = getMood();
+  const remainingChances = maxMistakes - mistakes;
+
+  const getBadgeStyle = () => {
+    if (remainingChances <= 1) {
+      return 'bg-red-500 text-white animate-pulse border border-red-400 shadow-sm';
+    }
+    if (remainingChances === 2) {
+      return 'bg-amber-400 text-slate-950 font-black border border-amber-300 shadow-sm';
+    }
+    return 'bg-emerald-500 text-white border border-emerald-400 shadow-sm';
+  };
 
   return (
     <div className={`relative w-full h-full min-h-[90px] sm:min-h-[110px] flex flex-col items-center justify-end overflow-hidden rounded-xl lg:rounded-2xl bg-white border border-slate-200 shadow-inner transition-colors duration-300 ${impact || isSharpening ? 'bg-red-50' : ''}`}>
@@ -79,8 +90,9 @@ const PencilVisual: React.FC<PencilVisualProps> = ({ mistakes, maxMistakes, stat
       <div className="absolute top-1.5 left-1.5 bg-white/90 border px-1.5 py-0.5 rounded-md text-[9px] sm:text-xs font-bold text-slate-600 z-30 shadow-xs">
          {mood.text}
       </div>
+
       {!isSharpening && (
-        <div className="absolute top-1.5 right-1.5 bg-slate-800 text-white px-1.5 py-0.5 rounded-full text-[9px] sm:text-xs font-bold z-30 shadow-xs">
+        <div className={`absolute top-1.5 right-1.5 px-2 py-0.5 rounded-full text-[9px] sm:text-xs font-extrabold z-30 transition-all duration-300 ${getBadgeStyle()}`}>
           {Math.round((1 - progress) * 100)}%
         </div>
       )}
