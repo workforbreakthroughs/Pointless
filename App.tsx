@@ -272,8 +272,7 @@ const App: React.FC = () => {
 
       {isQuestModalOpen && (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-200">
-          <div className="glass-panel w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-7 border border-white/80 relative max-h-[92vh] flex flex-col">
-             <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-20 h-8 bg-white/60 backdrop-blur-md -rotate-2 z-10 rounded-full border border-white/80 shadow-xs" />
+          <div className="glass-panel w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-7 border border-white/80 relative h-[520px] sm:h-[580px] max-h-[88vh] flex flex-col">
              <button onClick={() => setIsQuestModalOpen(false)} className="absolute top-3 right-3 text-slate-400 hover:text-slate-800 transition-colors text-xl font-black p-2 rounded-full hover:bg-white/50">✕</button>
              
              {/* Header & Stats Banner */}
