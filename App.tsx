@@ -575,17 +575,29 @@ const App: React.FC = () => {
                 {[
                   { q: 'streakMaster', i: '🔍', c: 'blue', a: () => {
                       const unrevealed = game.word.split('').filter(c => !game.guessedLetters.includes(c) && /[A-Z]/.test(c));
-                      if (unrevealed.length > 0) handleGuess(unrevealed[Math.floor(Math.random() * unrevealed.length)]);
+                      if (unrevealed.length > 0) {
+                        const chosen = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+                        handleGuess(chosen);
+                        triggerToast("LETTER REVEALED 🔍", `Revealed the letter "${chosen}"!`);
+                      }
                       setGame(prev => ({ ...prev, powers: { ...prev.powers, revealLetterUsed: true } }));
                   }, used: game.powers.revealLetterUsed, label: 'Reveal' },
                   { q: 'speedDemon', i: '💡', c: 'amber', a: () => {
                       setGame(prev => ({ ...prev, powers: { ...prev.powers, extraHintUsed: true } }));
+                      triggerToast("HINT 💡", game.extraClue ? game.extraClue : `Category: ${game.category}`);
                   }, used: game.powers.extraHintUsed, label: 'Hint' },
-                  { q: 'perfectionist', i: '🛡️', c: 'pink', a: () => {
-                      const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l));
-                      const toRem = [];
-                      for(let i=0; i<3 && alpha.length; i++) toRem.push(alpha.splice(Math.floor(Math.random()*alpha.length), 1)[0]);
-                      setGame(prev => ({ ...prev, removedLetters: [...prev.removedLetters, ...toRem], powers: { ...prev.powers, removeWrongUsed: true } }));
+                  { q: 'perfectionist', i: '🧹', c: 'pink', a: () => {
+                      const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l) && !game.removedLetters.includes(l));
+                      const toRem: string[] = [];
+                      for(let i=0; i<3 && alpha.length > 0; i++) {
+                        toRem.push(alpha.splice(Math.floor(Math.random()*alpha.length), 1)[0]);
+                      }
+                      if (toRem.length > 0) {
+                        setGame(prev => ({ ...prev, removedLetters: [...prev.removedLetters, ...toRem], powers: { ...prev.powers, removeWrongUsed: true } }));
+                        triggerToast("ERASER ACTIVATED 🧹", `Erased 3 wrong letters from keyboard: ${toRem.join(', ')}`);
+                      } else {
+                        triggerToast("ERASER 🧹", "No more wrong letters left to erase!");
+                      }
                   }, used: game.powers.removeWrongUsed, label: 'Eraser' }
                 ].map(p => (
                   <div key={p.label} className="flex flex-col items-center">
