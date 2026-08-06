@@ -483,17 +483,17 @@ const App: React.FC = () => {
       )}
 
       <header className="w-full flex justify-between items-center mb-2 sm:mb-3 px-1 sm:px-2 shrink-0">
-        <div className="flex items-center gap-2 sm:gap-3">
-          <h1 className="text-xl sm:text-2xl md:text-3xl font-heading text-slate-800 tracking-tight drop-shadow-xs">Pointless ✏️</h1>
-          <div className="flex items-center gap-1.5">
-            <span className="glass-pill-dark text-white text-xs sm:text-sm px-3 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
-            {game.currentStreak > 0 && <span className="text-orange-500 font-black text-xs sm:text-sm animate-pulse glass-pill px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
+        <div className="flex items-center gap-1.5 sm:gap-2.5">
+          <h1 className="text-lg sm:text-2xl md:text-3xl font-heading text-slate-800 tracking-tight drop-shadow-xs">Pointless ✏️</h1>
+          <div className="flex items-center gap-1 sm:gap-1.5">
+            <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
+            {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider shadow-xs hover:bg-white transition-all">Journal</button>
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase tracking-wider shadow-xs hover:bg-white transition-all">Journal</button>
           {game.status !== 'IDLE' && (
-            <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-3 py-1.5 rounded-full text-xs sm:text-sm font-bold uppercase transition-all">Menu</button>
+            <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase transition-all">Menu</button>
           )}
         </div>
       </header>
