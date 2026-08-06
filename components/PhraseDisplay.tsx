@@ -27,14 +27,31 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
         rounded: "rounded-xl sm:rounded-2xl lg:rounded-3xl border-2 sm:border-4 lg:border-[5px]",
         underline: "bottom-1 sm:bottom-2 lg:bottom-3 w-1/3 h-0.5 sm:h-1 lg:h-1.5"
       };
-    } else {
-      // 10+ letters - scaled cleanly between medium and short sizes
+    } else if (wordLength <= 11) {
       return {
         container: "gap-1 sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-1",
         box: "w-7 h-11 sm:w-10 sm:h-14 md:w-12 md:h-16 lg:w-14 lg:h-18 xl:w-16 xl:h-22",
         text: "text-base sm:text-2xl md:text-3xl lg:text-4xl xl:text-5xl leading-none",
         rounded: "rounded-lg sm:rounded-xl lg:rounded-2xl border-2 sm:border-3 lg:border-4",
         underline: "bottom-1 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
+      };
+    } else if (wordLength <= 14) {
+      // 12-14 letters - scaled down for mobile portrait view so all letters fit without scrolling
+      return {
+        container: "gap-[2px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
+        box: "w-[20px] h-[32px] xs:w-[22px] xs:h-[35px] sm:w-9 sm:h-13 md:w-11 md:h-15 lg:w-13 lg:h-17 xl:w-15 xl:h-20",
+        text: "text-xs sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-none font-bold",
+        rounded: "rounded border sm:border-2 lg:border-3",
+        underline: "bottom-0.5 sm:bottom-1 w-1/3 h-0.5 sm:h-1"
+      };
+    } else {
+      // 15+ letters
+      return {
+        container: "gap-[1.5px] sm:gap-1 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
+        box: "w-[17px] h-[28px] xs:w-[19px] xs:h-[30px] sm:w-8 sm:h-12 md:w-10 md:h-14 lg:w-12 lg:h-16 xl:w-14 xl:h-18",
+        text: "text-[10px] xs:text-[11px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-none font-bold",
+        rounded: "rounded-[3px] border sm:border-2 lg:border-3",
+        underline: "bottom-0.5 sm:bottom-1 w-1/3 h-[1px]"
       };
     }
   };
