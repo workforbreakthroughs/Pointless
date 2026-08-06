@@ -36,13 +36,13 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
         underline: "bottom-1 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
       };
     } else if (wordLength <= 14) {
-      // 12-14 letters - scaled down for mobile portrait view so all letters fit without scrolling
+      // 12-14 letters - scaled so all letters fit nicely on mobile portrait without scrolling while remaining comfortable to read
       return {
-        container: "gap-[2px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
-        box: "w-[20px] h-[32px] xs:w-[22px] xs:h-[35px] sm:w-9 sm:h-13 md:w-11 md:h-15 lg:w-13 lg:h-17 xl:w-15 xl:h-20",
-        text: "text-xs sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-none font-bold",
-        rounded: "rounded border sm:border-2 lg:border-3",
-        underline: "bottom-0.5 sm:bottom-1 w-1/3 h-0.5 sm:h-1"
+        container: "gap-[2px] xs:gap-[3px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
+        box: "w-[22px] h-[36px] xs:w-[25px] xs:h-[40px] sm:w-9 sm:h-13 md:w-11 md:h-15 lg:w-13 lg:h-17 xl:w-15 xl:h-20",
+        text: "text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-none font-bold",
+        rounded: "rounded-md sm:rounded-xl border sm:border-2 lg:border-3",
+        underline: "bottom-[2px] sm:bottom-1 w-1/3 h-0.5 sm:h-1"
       };
     } else {
       // 15+ letters
