@@ -2,6 +2,11 @@
 // Fetches etymological data from open-source dictionary APIs (such as Free Dictionary API / Wiktionary)
 // and caches results locally for instant performance.
 
+export interface OtherDefinition {
+  partOfSpeech?: string;
+  definition: string;
+}
+
 export interface EtymologyDetails {
   definition: string;
   origin: string;
@@ -9,6 +14,7 @@ export interface EtymologyDetails {
   phonetic?: string;
   partOfSpeech?: string;
   source?: string;
+  otherDefinitions?: OtherDefinition[];
 }
 
 const etymologyCache = new Map<string, EtymologyDetails>();
@@ -129,9 +135,37 @@ export async function fetchEtymologyDetails(
         const entry = data[0];
         const phonetic = entry.phonetic || (entry.phonetics?.[0]?.text) || "";
         const meaningObj = entry.meanings?.[0];
-        const apiDef = meaningObj?.definitions?.[0]?.definition || defaultClue;
+        const apiDef = defaultClue || meaningObj?.definitions?.[0]?.definition || "";
         const apiOrigin = entry.origin || extractOriginFromMeanings(entry) || "";
         
+        // Extract additional definitions across meanings
+        const otherDefs: OtherDefinition[] = [];
+        if (entry.meanings && Array.isArray(entry.meanings)) {
+          const primaryLower = (defaultClue || "").toLowerCase().trim();
+          for (const m of entry.meanings) {
+            const pos = m.partOfSpeech || "";
+            if (m.definitions && Array.isArray(m.definitions)) {
+              for (const d of m.definitions) {
+                if (d.definition && typeof d.definition === 'string') {
+                  const cleanDef = d.definition.trim();
+                  const defLower = cleanDef.toLowerCase();
+                  if (
+                    primaryLower && 
+                    defLower !== primaryLower &&
+                    !primaryLower.includes(defLower) &&
+                    !defLower.includes(primaryLower) &&
+                    !otherDefs.some(od => od.definition.toLowerCase() === defLower)
+                  ) {
+                    otherDefs.push({ partOfSpeech: pos, definition: cleanDef });
+                    if (otherDefs.length >= 3) break;
+                  }
+                }
+              }
+            }
+            if (otherDefs.length >= 3) break;
+          }
+        }
+
         let originText = apiOrigin;
         if (!originText) {
           originText = deriveHeuristicOrigin(cleanWord, category);
@@ -150,7 +184,8 @@ export async function fetchEtymologyDetails(
           funFact: funFactText,
           phonetic: phonetic,
           partOfSpeech: meaningObj?.partOfSpeech || "",
-          source: "Wiktionary Open Data"
+          source: "Wiktionary Open Data",
+          otherDefinitions: otherDefs.length > 0 ? otherDefs : undefined
         };
 
         etymologyCache.set(cleanWord, result);
