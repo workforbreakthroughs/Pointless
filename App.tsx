@@ -805,9 +805,9 @@ const App: React.FC = () => {
           return (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowWinModal(false); }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
             >
-              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.25rem)] sm:max-h-[85vh] overflow-hidden relative">
+              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.5rem)] sm:max-h-[85vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
@@ -952,9 +952,9 @@ const App: React.FC = () => {
           return (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-2.5 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
             >
-              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.25rem)] sm:max-h-[85vh] overflow-hidden relative">
+              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.5rem)] sm:max-h-[85vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
