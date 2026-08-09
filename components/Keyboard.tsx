@@ -29,7 +29,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters, onG
                 onClick={() => onGuess(letter)}
                 disabled={disabled || isGuessed || isRemoved}
                 className={`
-                  h-11 sm:h-12 md:h-14 lg:h-16 flex-1 min-w-0 max-w-[36px] sm:max-w-[48px] md:max-w-[56px] lg:max-w-[64px] flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-sm sm:text-base md:text-xl lg:text-2xl transition-all duration-150 select-none
+                  h-10 sm:h-11 md:h-12 lg:h-13 flex-1 min-w-0 max-w-[34px] sm:max-w-[44px] md:max-w-[52px] lg:max-w-[58px] flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base md:text-lg lg:text-xl transition-all duration-150 select-none
                   ${isGuessed 
                     ? 'bg-slate-200/50 text-slate-300 opacity-40 border border-slate-200/40' 
                     : isRemoved

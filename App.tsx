@@ -555,7 +555,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <main className={`w-full flex-1 glass-panel rounded-3xl p-3 sm:p-5 transition-all flex flex-col justify-between overflow-x-hidden ${isShaking ? 'animate-shake border-red-300 bg-red-50/50' : ''}`}>
+      <main className={`w-full flex-1 glass-panel rounded-3xl p-2.5 sm:p-4 md:p-5 transition-all flex flex-col justify-between overflow-y-auto max-h-full ${isShaking ? 'animate-shake border-red-300 bg-red-50/50' : ''}`}>
         {game.status === 'IDLE' ? (
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
             <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>✏️</div>
@@ -589,46 +589,46 @@ const App: React.FC = () => {
           </div>
         ) : (
           /* Playing & Game Space Layout */
-          <div className="flex flex-col flex-1 justify-between gap-3 animate-pop">
+          <div className="flex flex-col flex-1 justify-between gap-2.5 sm:gap-3 animate-pop">
             
             {/* Top Game Space (Clue & Visual) */}
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_160px] md:grid-cols-[1fr_200px] gap-3 items-stretch shrink-0">
-              <div className="glass-card p-3 sm:p-4 rounded-2xl flex flex-col items-center justify-center text-center">
-                <span className="inline-flex items-center gap-1 glass-pill-dark text-white px-3 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1.5 shadow-2xs">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_150px] md:grid-cols-[1fr_180px] gap-2.5 items-stretch shrink-0">
+              <div className="glass-card p-2.5 sm:p-3.5 rounded-2xl flex flex-col items-center justify-center text-center">
+                <span className="inline-flex items-center gap-1 glass-pill-dark text-white px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1 shadow-2xs">
                   <span className="text-yellow-400 font-extrabold">{getTierForLevel(game.level).toUpperCase()}</span>
                   <span className="text-slate-500">•</span>
                   <span>{game.category}</span>
                 </span>
-                <h2 className="text-sm sm:text-base md:text-lg font-bold text-slate-800 italic leading-snug px-2">"{game.clue}"</h2>
+                <h2 className="text-xs sm:text-sm md:text-base font-bold text-slate-800 italic leading-snug px-2">"{game.clue}"</h2>
                 {game.powers.extraHintUsed && (
-                  <div className="mt-2 p-2 bg-yellow-100/90 border border-yellow-300 rounded-xl text-yellow-950 font-bold text-xs sm:text-sm animate-in zoom-in shadow-2xs">
+                  <div className="mt-1.5 p-1.5 bg-yellow-100/90 border border-yellow-300 rounded-xl text-yellow-950 font-bold text-xs animate-in zoom-in shadow-2xs">
                     💡 HINT: {game.extraClue}
                   </div>
                 )}
               </div>
 
-              <div className="flex items-center justify-center h-28 sm:h-full min-h-[90px] glass-pill rounded-2xl">
+              <div className="flex items-center justify-center h-24 sm:h-auto min-h-[85px] max-h-[135px] glass-pill rounded-2xl">
                  <PencilVisual mistakes={game.mistakes} maxMistakes={game.maxMistakes} status={game.status} isWrongGuess={lastGuessWasWrong} />
               </div>
             </div>
 
             {/* Bottom Interactive Area */}
-            <div className="flex flex-col gap-3 flex-1 justify-between border-t border-white/60 pt-3">
+            <div className="flex flex-col gap-2.5 sm:gap-3 flex-1 justify-between border-t border-white/60 pt-2.5">
               
               {/* Timer Bar */}
               <div className="shrink-0">
-                <div className="w-full h-2.5 sm:h-3 bg-slate-200/60 rounded-full overflow-hidden border border-white/80 p-0.5 glass-pill">
+                <div className="w-full h-2 sm:h-2.5 bg-slate-200/60 rounded-full overflow-hidden border border-white/80 p-0.5 glass-pill">
                   <div className={`h-full rounded-full transition-all duration-1000 ${game.timeLeft < 10 ? 'bg-red-500' : 'bg-slate-800'}`} style={{ width: `${timerPercentage}%` }} />
                 </div>
               </div>
 
               {/* Word Letters Display */}
-              <div className="my-auto py-2 px-1 flex items-center justify-center">
+              <div className="my-auto py-1 px-1 flex items-center justify-center overflow-x-auto">
                 <WordDisplay word={game.word} guessedLetters={game.guessedLetters} revealAll={game.status === 'LOST'} />
               </div>
 
               {/* Power-up buttons */}
-              <div className="flex justify-center gap-4 sm:gap-8 items-center shrink-0 my-1">
+              <div className="flex justify-center gap-3 sm:gap-6 items-center shrink-0 my-0.5">
                 {[
                   { q: 'streakMaster', i: '🔍', c: 'blue', a: () => {
                       const unrevealed = game.word.split('').filter(c => !game.guessedLetters.includes(c) && /[A-Z]/.test(c));
@@ -669,14 +669,14 @@ const App: React.FC = () => {
                     <button 
                       onClick={p.a}
                       disabled={!game.quests[p.q as keyof QuestState] || p.used || game.status !== 'PLAYING'}
-                      className={`w-11 h-11 sm:w-13 sm:h-13 md:w-14 md:h-14 rounded-2xl flex items-center justify-center text-lg sm:text-2xl shadow-md transition-all btn-press
+                      className={`w-10 h-10 sm:w-11 sm:h-11 md:w-12 md:h-12 rounded-2xl flex items-center justify-center text-base sm:text-xl shadow-md transition-all btn-press
                         ${!game.quests[p.q as keyof QuestState] ? 'bg-slate-200/60 grayscale opacity-30 border border-slate-300/40' : 
                           p.used ? 'bg-slate-200/80 text-slate-400' : 
                           p.c === 'blue' ? 'bg-blue-500 text-white shadow-blue-500/20' :
                           p.c === 'amber' ? 'bg-amber-400 text-white shadow-amber-400/20' : 'bg-pink-500 text-white shadow-pink-500/20'}
                       `}
                     >{p.i}</button>
-                    <span className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase mt-1 tracking-wider">{p.label}</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase mt-0.5 tracking-wider">{p.label}</span>
                   </div>
                 ))}
               </div>
