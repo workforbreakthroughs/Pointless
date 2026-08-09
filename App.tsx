@@ -34,6 +34,61 @@ const DEFAULT_QUESTS: QuestState = {
   pureInstinct: false,
 };
 
+const getWordDetails = (word: string, clue: string, extraClue: string, category: string) => {
+  const uWord = word.toUpperCase();
+  
+  // 1. Definition
+  const definition = clue || "A word from the Princeton WordNet lexicon.";
+
+  // 2. Etymology / Origin
+  let origin = "";
+  if (uWord === 'PETRICHOR') {
+    origin = "Greek petra — stone + ichor — fluid flowing in the veins of the gods.";
+  } else if (uWord === 'OBSIDIAN') {
+    origin = "Latin obsidianus — named after Obsius who discovered a similar dark volcanic stone in Ethiopia.";
+  } else if (uWord === 'PENDULUM') {
+    origin = "Latin pendulus — hanging down, from pendere — to hang.";
+  } else if (uWord === 'CHAMELEON') {
+    origin = "Greek khamaileon — dwarf lion, from khamai (on the ground) + leon (lion).";
+  } else if (uWord === 'ARCHIPELAGO') {
+    origin = "Italian arcipelago — chief sea, from Greek arkhi- (chief) + pelagos (sea).";
+  } else if (uWord === 'LABYRINTH') {
+    origin = "Greek labyrinthos — referring to the mythical maze of Crete constructed by Daedalus.";
+  } else if (uWord === 'SOLSTICE') {
+    origin = "Latin solstitium — sun standing still, from sol (sun) + sistere (to stand still).";
+  } else if (uWord === 'PARADOX') {
+    origin = "Greek paradoxon — contrary to expectation, from para- (distinct from) + doxa (opinion).";
+  } else if (uWord === 'SERENDIPITY') {
+    origin = "Coined by Horace Walpole in 1754, inspired by the Persian fairy tale The Three Princes of Serendip.";
+  } else {
+    const catLower = category.toLowerCase();
+    if (catLower.includes('myth') || catLower.includes('greek') || catLower.includes('astro') || catLower.includes('geo')) {
+      origin = `Derived from ancient Greek lexical roots associated with ${category}.`;
+    } else if (catLower.includes('latin') || catLower.includes('law') || catLower.includes('plant') || catLower.includes('animal') || catLower.includes('nature') || catLower.includes('fauna') || catLower.includes('flora')) {
+      origin = `Rooted in classical Latin vocabulary and natural taxonomy.`;
+    } else if (catLower.includes('french') || catLower.includes('art') || catLower.includes('cuisine') || catLower.includes('fashion')) {
+      origin = `Entered the English language via Middle French and Anglo-Norman lexicon.`;
+    } else {
+      origin = `Evolved into Modern English from historical Germanic and Old English linguistic roots.`;
+    }
+  }
+
+  // 3. Fun Fact
+  let funFact = "";
+  if (uWord === 'PETRICHOR') {
+    funFact = "The word was coined in 1964 by Australian researchers Isabel Bear and Richard Thomas.";
+  } else if (extraClue && !extraClue.startsWith("Category:") && !extraClue.includes("letters,")) {
+    funFact = extraClue;
+  } else {
+    const vowels = uWord.split('').filter(c => 'AEIOU'.includes(c)).length;
+    const consonants = uWord.length - vowels;
+    const unique = new Set(uWord.split('')).size;
+    funFact = `Spelled with ${uWord.length} letters (${vowels} vowel${vowels === 1 ? '' : 's'}, ${consonants} consonant${consonants === 1 ? '' : 's'}) containing ${unique} unique letter${unique === 1 ? '' : 's'}.`;
+  }
+
+  return { definition, origin, funFact };
+};
+
 const App: React.FC = () => {
   const [game, setGame] = useState<GameState>({
     status: 'IDLE',
@@ -61,6 +116,7 @@ const App: React.FC = () => {
   const [showToast, setShowToast] = useState<{title: string, msg: string} | null>(null);
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [journalTab, setJournalTab] = useState<'powers' | 'trophies'>('powers');
+  const [showLossModal, setShowLossModal] = useState(true);
   const timerRef = useRef<number | null>(null);
 
   const [newsIndex, setNewsIndex] = useState(0);
@@ -110,6 +166,7 @@ const App: React.FC = () => {
 
   const startNewGame = useCallback(async (isLevelUp = false) => {
     const nextLevel = isLevelUp ? game.level + 1 : game.level;
+    setShowLossModal(true);
     
     setGame(prev => ({ 
       ...prev, 
@@ -624,26 +681,37 @@ const App: React.FC = () => {
                 ))}
               </div>
 
-              {/* Keyboard OR Win/Loss State */}
+              {/* Keyboard OR Win/Loss Bottom State */}
               <div className="shrink-0 mt-1">
-                {game.status === 'PLAYING' ? (
-                  <Keyboard guessedLetters={game.guessedLetters} removedLetters={game.removedLetters} onGuess={handleGuess} disabled={false} />
-                ) : (
+                {game.status === 'WON' ? (
                   <div className="glass-panel text-slate-900 rounded-3xl p-5 sm:p-7 text-center animate-in zoom-in shadow-2xl my-2 max-w-xl mx-auto border border-white/90">
-                    {game.status === 'WON' ? (
-                      <div>
-                        <span className="text-xs sm:text-sm font-black uppercase text-emerald-600 tracking-widest block mb-1">LEVEL {game.level} COMPLETE</span>
-                        <h3 className="text-2xl sm:text-4xl font-heading text-slate-900 mb-4">Well Done! 🎉</h3>
-                        <button onClick={() => startNewGame(true)} className="glass-pill-dark text-white px-8 py-3.5 rounded-full font-heading text-base sm:text-xl shadow-xl btn-press">Next Level ({game.level + 1})</button>
-                      </div>
-                    ) : (
-                      <div>
-                        <h3 className="text-2xl sm:text-4xl font-heading text-red-500 mb-2">Snapped! ✏️</h3>
-                        <p className="text-slate-700 mb-4 text-sm sm:text-base font-bold">Answer: <span className="text-amber-600 font-black uppercase">{game.word}</span></p>
-                        <button onClick={() => startNewGame(false)} className="glass-pill-dark text-white px-8 py-3.5 rounded-full font-heading text-base sm:text-xl shadow-xl btn-press">Retry Level {game.level}</button>
-                      </div>
-                    )}
+                    <span className="text-xs sm:text-sm font-black uppercase text-emerald-600 tracking-widest block mb-1">LEVEL {game.level} COMPLETE</span>
+                    <h3 className="text-2xl sm:text-4xl font-heading text-slate-900 mb-4">Well Done! 🎉</h3>
+                    <button onClick={() => startNewGame(true)} className="glass-pill-dark text-white px-8 py-3.5 rounded-full font-heading text-base sm:text-xl shadow-xl btn-press">Next Level ({game.level + 1})</button>
                   </div>
+                ) : game.status === 'LOST' ? (
+                  <div className="glass-panel text-slate-900 rounded-3xl p-4 sm:p-6 text-center animate-in zoom-in shadow-2xl my-2 max-w-xl mx-auto border border-white/90">
+                    <h3 className="text-2xl sm:text-3xl font-heading text-red-500 mb-1">Snapped! ✏️</h3>
+                    <p className="text-slate-700 mb-3 text-sm sm:text-base font-bold">
+                      Answer: <span className="text-amber-600 font-black uppercase tracking-wider">{game.word}</span>
+                    </p>
+                    <div className="flex flex-wrap items-center justify-center gap-2">
+                      <button onClick={() => startNewGame(false)} className="glass-pill-dark text-white px-5 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center gap-1.5">
+                        <span>🔄</span> Retry Level {game.level}
+                      </button>
+                      <button onClick={() => setShowLossModal(true)} className="glass-button text-slate-800 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center gap-1.5">
+                        <span>💡</span> Word Info
+                      </button>
+                      <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center gap-1.5">
+                        <span>📖</span> Journal
+                      </button>
+                      <button onClick={() => setGame(prev => ({ ...prev, status: 'IDLE' }))} className="glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider transition-all flex items-center gap-1.5">
+                        <span>🏠</span> Menu
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <Keyboard guessedLetters={game.guessedLetters} removedLetters={game.removedLetters} onGuess={handleGuess} disabled={false} />
                 )}
               </div>
             </div>
@@ -656,6 +724,110 @@ const App: React.FC = () => {
             </div>
           </div>
         )}
+
+        {/* Full-Screen Translucent Snapped Modal for Lost State */}
+        {game.status === 'LOST' && showLossModal && (() => {
+          const details = getWordDetails(game.word, game.clue, game.extraClue, game.category);
+          return (
+            <div 
+              onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
+              className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto"
+            >
+              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-5 sm:p-7 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-3.5 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto relative">
+                
+                {/* Modal Header */}
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
+                  <div className="flex items-center gap-2.5">
+                    <span className="text-3xl sm:text-4xl">✏️</span>
+                    <div>
+                      <h3 className="text-2xl sm:text-3xl font-heading text-red-500 leading-none">Snapped!</h3>
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-1 block">Level {game.level} Unsuccessful</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="glass-pill-dark text-amber-400 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                      {game.category}
+                    </span>
+                    <button 
+                      onClick={() => setShowLossModal(false)}
+                      className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-600 hover:text-slate-900 font-bold text-sm flex items-center justify-center transition-all btn-press shadow-2xs"
+                      title="Close to review board"
+                      aria-label="Close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Answer Banner */}
+                <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 sm:p-4 text-center shadow-xs shrink-0">
+                  <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 block">Answer Word</span>
+                  <span className="text-amber-600 font-black text-2xl sm:text-4xl uppercase tracking-widest block mt-0.5">{game.word}</span>
+                </div>
+
+                {/* Word Information Sections */}
+                <div className="flex flex-col gap-2.5 shrink-0">
+                  {/* DEFINITION */}
+                  <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
+                      <span>📖</span> DEFINITION
+                    </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{details.definition}"</p>
+                  </div>
+
+                  {/* ORIGIN */}
+                  <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
+                      <span>🏛️</span> ORIGIN
+                    </div>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{details.origin}</p>
+                  </div>
+
+                  {/* FUN FACT */}
+                  <div className="bg-amber-100/70 p-3.5 rounded-2xl border border-amber-200/90 shadow-2xs">
+                    <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
+                      <span>💡</span> FUN FACT
+                    </div>
+                    <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{details.funFact}</p>
+                  </div>
+                </div>
+
+                {/* Navigation & Action Buttons */}
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-1 pt-3 border-t border-slate-200/80 w-full shrink-0">
+                  <button 
+                    onClick={() => startNewGame(false)} 
+                    className="w-full sm:flex-1 glass-pill-dark text-white px-4 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all"
+                  >
+                    <span>🔄</span> Retry Level {game.level}
+                  </button>
+                  
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                    <button 
+                      onClick={() => setShowLossModal(false)} 
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                      title="Close modal to review board"
+                    >
+                      <span>👁️</span> Board
+                    </button>
+                    <button 
+                      onClick={() => setIsQuestModalOpen(true)} 
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                    >
+                      <span>📖</span> Journal
+                    </button>
+                    <button 
+                      onClick={() => setGame(prev => ({ ...prev, status: 'IDLE' }))} 
+                      className="flex-1 sm:flex-initial glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+                    >
+                      <span>🏠</span> Menu
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          );
+        })()}
       </main>
       <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">
         Pointless Studios © 2025 • WordNet 3.1 Copyright © Princeton University
