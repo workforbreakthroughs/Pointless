@@ -62,7 +62,20 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
     <div className={`flex justify-center items-center ${sizes.container} max-w-full mx-auto px-1 py-1`}>
       {word.split('').map((char, charIndex) => {
         const isLetter = /[A-Z]/.test(char);
-        const isRevealed = guessedLetters.includes(char) || revealAll || !isLetter;
+        const isGuessedByPlayer = guessedLetters.includes(char);
+        const isRevealed = isGuessedByPlayer || revealAll || !isLetter;
+
+        // Determine font color for revealed letters
+        let textColor = 'text-transparent';
+        if (isRevealed && isLetter) {
+          if (isGuessedByPlayer) {
+            textColor = 'text-emerald-600 font-black';
+          } else if (revealAll) {
+            textColor = 'text-red-500 font-black'; // Missed letters when game is lost
+          } else {
+            textColor = 'text-slate-900';
+          }
+        }
 
         return (
           <div
@@ -71,14 +84,14 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
               ${sizes.box} flex items-center justify-center 
               ${sizes.text} font-heading shrink-0 box-border overflow-hidden
               ${sizes.rounded}
-              ${isRevealed && isLetter ? 'text-slate-900 glass-card border-white/90 shadow-md' : 'text-transparent glass-card border-white/60 shadow-xs'}
+              ${isRevealed && isLetter ? `${textColor} glass-card border-white/90 shadow-md` : 'text-transparent glass-card border-white/60 shadow-xs'}
               ${!isLetter ? 'bg-transparent border-transparent text-slate-400' : ''}
               transition-all duration-300 transform hover:scale-105 relative select-none
             `}
           >
             {isRevealed ? char : ''}
             {!isRevealed && isLetter && (
-              <div className={`absolute ${sizes.underline} bg-slate-200 rounded-full`} />
+              <div className={`absolute ${sizes.underline} bg-emerald-500 shadow-xs rounded-full`} />
             )}
           </div>
         );
