@@ -807,31 +807,31 @@ const App: React.FC = () => {
               onClick={(e) => { if (e.target === e.currentTarget) setShowWinModal(false); }}
               className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
             >
-              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.5rem)] sm:max-h-[85vh] overflow-hidden relative">
+              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-3.5 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-3.5rem)] sm:max-h-[82vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
-                  <div className="flex items-center gap-2.5">
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 sm:pb-3 shrink-0">
+                  <div className="flex items-center gap-2">
                     <button 
                       onClick={triggerConfettiAnimation}
-                      className="text-3xl sm:text-4xl hover:scale-125 transition-transform cursor-pointer active:scale-90"
+                      className="text-2.5xl sm:text-4xl hover:scale-125 transition-transform cursor-pointer active:scale-90 shrink-0"
                       title="Click for confetti!"
                       aria-label="Celebrate with confetti"
                     >
                       🎉
                     </button>
                     <div>
-                      <h3 className="text-2xl sm:text-3xl font-heading text-emerald-600 leading-none">Well Done!</h3>
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-1 block">Level {game.level} Cleared!</span>
+                      <h3 className="text-xl sm:text-3xl font-heading text-emerald-600 leading-none">Well Done!</h3>
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-0.5 block">Level {game.level} Cleared!</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="glass-pill-dark text-amber-400 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="glass-pill-dark text-amber-400 text-[10px] sm:text-xs font-extrabold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                       {game.category}
                     </span>
                     <button 
                       onClick={() => setShowWinModal(false)}
-                      className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-600 hover:text-slate-900 font-bold text-sm flex items-center justify-center transition-all btn-press shadow-2xs"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm flex items-center justify-center transition-all btn-press shadow-2xs"
                       title="Close to review board"
                       aria-label="Close"
                     >
@@ -841,12 +841,12 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Scrollable Word Info Body */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-3.5">
+                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-2.5 sm:gap-3.5">
                   {/* Answer Banner */}
-                  <div className="bg-emerald-50/90 border border-emerald-200/90 rounded-2xl p-3.5 sm:p-4 text-center shadow-xs shrink-0 relative overflow-hidden">
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-800/80 block">Correct Word</span>
+                  <div className="bg-emerald-50/90 border border-emerald-200/90 rounded-2xl p-2.5 sm:p-4 text-center shadow-xs shrink-0 relative overflow-hidden">
+                    <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-800/80 block">Correct Word</span>
                     <div className="flex items-center justify-center gap-2 mt-0.5">
-                      <span className="text-emerald-600 font-black text-2xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
+                      <span className="text-emerald-600 font-black text-xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
                       {phonetic && (
                         <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200/60">{phonetic}</span>
                       )}
@@ -854,23 +854,23 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Word Information Sections */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2 sm:gap-2.5">
                     {/* DEFINITION */}
-                    <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                    <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                       </div>
                       <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{definition}"</p>
 
                       {/* OTHER MEANINGS & DEFINITIONS */}
                       {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-slate-200/80">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
+                        <div className="mt-2.5 pt-2 border-t border-slate-200/80">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
                             <span>📚</span> OTHER MEANINGS & DEFINITIONS
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            {etymologyInfo.otherDefinitions.map((defItem, idx) => (
-                              <div key={idx} className="text-xs text-slate-700 font-medium flex items-start gap-1.5 bg-white/60 p-2 rounded-xl border border-slate-200/60">
+                            {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
+                              <div key={idx} className="text-xs text-slate-700 font-medium flex items-start gap-1.5 bg-white/60 p-1.5 sm:p-2 rounded-xl border border-slate-200/60">
                                 {defItem.partOfSpeech && (
                                   <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 text-slate-600 rounded-md shrink-0 mt-0.5">
                                     {defItem.partOfSpeech}
@@ -885,8 +885,8 @@ const App: React.FC = () => {
                     </div>
 
                     {/* ORIGIN / ETYMOLOGY */}
-                    <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                    <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{source}</span>
                       </div>
@@ -894,8 +894,8 @@ const App: React.FC = () => {
                     </div>
 
                     {/* FUN FACT */}
-                    <div className="bg-emerald-100/70 p-3.5 rounded-2xl border border-emerald-200/90 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-emerald-800 mb-1 flex items-center gap-1.5">
+                    <div className="bg-emerald-100/70 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-200/90 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-800 mb-1 flex items-center gap-1.5">
                         <span>💡</span> FUN FACT
                       </div>
                       <p className="text-xs sm:text-sm font-semibold text-emerald-950 leading-relaxed">{funFact}</p>
@@ -904,10 +904,10 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Navigation & Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto pt-3 border-t border-slate-200/80 w-full shrink-0">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 mt-auto pt-2.5 sm:pt-3 border-t border-slate-200/80 w-full shrink-0">
                   <button 
                     onClick={() => startNewGame(true)} 
-                    className="w-full sm:flex-1 glass-pill-dark text-white px-4 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all"
+                    className="w-full sm:flex-1 glass-pill-dark text-white px-3.5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all"
                   >
                     <span>🚀</span> Next Level ({game.level + 1})
                   </button>
@@ -915,20 +915,20 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-1.5 w-full sm:w-auto">
                     <button 
                       onClick={() => setShowWinModal(false)} 
-                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
                       title="Close modal to review board"
                     >
                       <span>👁️</span> Board
                     </button>
                     <button 
                       onClick={() => setIsQuestModalOpen(true)} 
-                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
                     >
                       <span>📖</span> Journal
                     </button>
                     <button 
                       onClick={() => setGame(prev => ({ ...prev, status: 'IDLE' }))} 
-                      className="flex-1 sm:flex-initial glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
                     >
                       <span>🏠</span> Menu
                     </button>
@@ -954,24 +954,24 @@ const App: React.FC = () => {
               onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
               className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
             >
-              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-4 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2.5 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-1.5rem)] sm:max-h-[85vh] overflow-hidden relative">
+              <div className="w-full max-w-xl glass-panel bg-white/85 backdrop-blur-md text-slate-900 rounded-3xl p-3.5 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col gap-2 sm:gap-3.5 animate-in zoom-in-95 max-h-[calc(100dvh-3.5rem)] sm:max-h-[82vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
-                  <div className="flex items-center gap-2.5">
-                    <span className="text-3xl sm:text-4xl">✏️</span>
+                <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 sm:pb-3 shrink-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2.5xl sm:text-4xl shrink-0">✏️</span>
                     <div>
-                      <h3 className="text-2xl sm:text-3xl font-heading text-red-500 leading-none">Snapped!</h3>
-                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-1 block">Level {game.level} Unsuccessful</span>
+                      <h3 className="text-xl sm:text-3xl font-heading text-red-500 leading-none">Snapped!</h3>
+                      <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-0.5 block">Level {game.level} Unsuccessful</span>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <span className="glass-pill-dark text-amber-400 text-xs font-extrabold px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
+                  <div className="flex items-center gap-1.5 sm:gap-2">
+                    <span className="glass-pill-dark text-amber-400 text-[10px] sm:text-xs font-extrabold px-2.5 sm:px-3 py-1 rounded-full uppercase tracking-wider shadow-xs">
                       {game.category}
                     </span>
                     <button 
                       onClick={() => setShowLossModal(false)}
-                      className="w-8 h-8 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-600 hover:text-slate-900 font-bold text-sm flex items-center justify-center transition-all btn-press shadow-2xs"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200/80 hover:bg-slate-300/90 text-slate-600 hover:text-slate-900 font-bold text-xs sm:text-sm flex items-center justify-center transition-all btn-press shadow-2xs"
                       title="Close to review board"
                       aria-label="Close"
                     >
@@ -981,12 +981,12 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Scrollable Word Info Body */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-3.5">
+                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-2.5 sm:gap-3.5">
                   {/* Answer Banner */}
-                  <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 sm:p-4 text-center shadow-xs shrink-0 relative overflow-hidden">
-                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 block">Answer Word</span>
+                  <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-2.5 sm:p-4 text-center shadow-xs shrink-0 relative overflow-hidden">
+                    <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 block">Answer Word</span>
                     <div className="flex items-center justify-center gap-2 mt-0.5">
-                      <span className="text-amber-600 font-black text-2xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
+                      <span className="text-amber-600 font-black text-xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
                       {phonetic && (
                         <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/60">{phonetic}</span>
                       )}
@@ -994,23 +994,23 @@ const App: React.FC = () => {
                   </div>
 
                   {/* Word Information Sections */}
-                  <div className="flex flex-col gap-2.5">
+                  <div className="flex flex-col gap-2 sm:gap-2.5">
                     {/* DEFINITION */}
-                    <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                    <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                       </div>
                       <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{definition}"</p>
 
                       {/* OTHER MEANINGS & DEFINITIONS */}
                       {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
-                        <div className="mt-3 pt-2.5 border-t border-slate-200/80">
-                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1.5 flex items-center gap-1.5">
+                        <div className="mt-2.5 pt-2 border-t border-slate-200/80">
+                          <div className="text-[10px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
                             <span>📚</span> OTHER MEANINGS & DEFINITIONS
                           </div>
                           <div className="flex flex-col gap-1.5">
-                            {etymologyInfo.otherDefinitions.map((defItem, idx) => (
-                              <div key={idx} className="text-xs text-slate-700 font-medium flex items-start gap-1.5 bg-white/60 p-2 rounded-xl border border-slate-200/60">
+                            {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
+                              <div key={idx} className="text-xs text-slate-700 font-medium flex items-start gap-1.5 bg-white/60 p-1.5 sm:p-2 rounded-xl border border-slate-200/60">
                                 {defItem.partOfSpeech && (
                                   <span className="text-[9px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 text-slate-600 rounded-md shrink-0 mt-0.5">
                                     {defItem.partOfSpeech}
@@ -1025,8 +1025,8 @@ const App: React.FC = () => {
                     </div>
 
                     {/* ORIGIN / ETYMOLOGY */}
-                    <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                    <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
                         <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{source}</span>
                       </div>
@@ -1034,8 +1034,8 @@ const App: React.FC = () => {
                     </div>
 
                     {/* FUN FACT */}
-                    <div className="bg-amber-100/70 p-3.5 rounded-2xl border border-amber-200/90 shadow-2xs">
-                      <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
+                    <div className="bg-amber-100/70 p-2.5 sm:p-3.5 rounded-2xl border border-amber-200/90 shadow-2xs">
+                      <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
                         <span>💡</span> FUN FACT
                       </div>
                       <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{funFact}</p>
@@ -1044,10 +1044,10 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Navigation & Action Buttons */}
-                <div className="flex flex-col sm:flex-row items-center justify-between gap-2 mt-auto pt-3 border-t border-slate-200/80 w-full shrink-0">
+                <div className="flex flex-col sm:flex-row items-center justify-between gap-1.5 sm:gap-2 mt-auto pt-2.5 sm:pt-3 border-t border-slate-200/80 w-full shrink-0">
                   <button 
                     onClick={() => startNewGame(false)} 
-                    className="w-full sm:flex-1 glass-pill-dark text-white px-4 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all"
+                    className="w-full sm:flex-1 glass-pill-dark text-white px-3.5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 transition-all"
                   >
                     <span>🔄</span> Retry Level {game.level}
                   </button>
@@ -1055,20 +1055,20 @@ const App: React.FC = () => {
                   <div className="flex items-center gap-1.5 w-full sm:w-auto">
                     <button 
                       onClick={() => setShowLossModal(false)} 
-                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
                       title="Close modal to review board"
                     >
                       <span>👁️</span> Board
                     </button>
                     <button 
                       onClick={() => setIsQuestModalOpen(true)} 
-                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-button text-slate-800 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1"
                     >
                       <span>📖</span> Journal
                     </button>
                     <button 
                       onClick={() => setGame(prev => ({ ...prev, status: 'IDLE' }))} 
-                      className="flex-1 sm:flex-initial glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-3 py-2.5 rounded-2xl font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
+                      className="flex-1 sm:flex-initial glass-pill text-slate-700 hover:text-slate-900 bg-slate-200/80 hover:bg-slate-300/80 px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-2xl font-bold text-[11px] sm:text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-1"
                     >
                       <span>🏠</span> Menu
                     </button>
