@@ -3,6 +3,7 @@ import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { GameState, GameStatus, QuestState } from './types';
 import { fetchNewWord } from './services/geminiService';
 import { getTierForLevel } from './services/wordNetService';
+import { fetchEtymologyDetails, EtymologyDetails } from './services/etymologyService';
 import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
@@ -117,7 +118,19 @@ const App: React.FC = () => {
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
   const [journalTab, setJournalTab] = useState<'powers' | 'trophies'>('powers');
   const [showLossModal, setShowLossModal] = useState(true);
+  const [etymologyInfo, setEtymologyInfo] = useState<EtymologyDetails | null>(null);
   const timerRef = useRef<number | null>(null);
+
+  // Fetch etymology when game is lost
+  useEffect(() => {
+    if (game.status === 'LOST' && game.word) {
+      fetchEtymologyDetails(game.word, game.clue, game.extraClue, game.category).then(data => {
+        setEtymologyInfo(data);
+      });
+    } else {
+      setEtymologyInfo(null);
+    }
+  }, [game.status, game.word, game.clue, game.extraClue, game.category]);
 
   const [newsIndex, setNewsIndex] = useState(0);
   useEffect(() => {
@@ -727,7 +740,13 @@ const App: React.FC = () => {
 
         {/* Full-Screen Translucent Snapped Modal for Lost State */}
         {game.status === 'LOST' && showLossModal && (() => {
-          const details = getWordDetails(game.word, game.clue, game.extraClue, game.category);
+          const fallbackDetails = getWordDetails(game.word, game.clue, game.extraClue, game.category);
+          const definition = etymologyInfo?.definition || fallbackDetails.definition;
+          const origin = etymologyInfo?.origin || fallbackDetails.origin;
+          const funFact = etymologyInfo?.funFact || fallbackDetails.funFact;
+          const phonetic = etymologyInfo?.phonetic;
+          const source = etymologyInfo?.source || "Princeton WordNet 3.1 Lexicon";
+
           return (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
@@ -760,27 +779,33 @@ const App: React.FC = () => {
                 </div>
 
                 {/* Answer Banner */}
-                <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 sm:p-4 text-center shadow-xs shrink-0">
+                <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-3.5 sm:p-4 text-center shadow-xs shrink-0 relative overflow-hidden">
                   <span className="text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 block">Answer Word</span>
-                  <span className="text-amber-600 font-black text-2xl sm:text-4xl uppercase tracking-widest block mt-0.5">{game.word}</span>
+                  <div className="flex items-center justify-center gap-2 mt-0.5">
+                    <span className="text-amber-600 font-black text-2xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
+                    {phonetic && (
+                      <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/60">{phonetic}</span>
+                    )}
+                  </div>
                 </div>
 
                 {/* Word Information Sections */}
                 <div className="flex flex-col gap-2.5 shrink-0">
                   {/* DEFINITION */}
                   <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
-                      <span>📖</span> DEFINITION
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>📖</span> DEFINITION</span>
                     </div>
-                    <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{details.definition}"</p>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{definition}"</p>
                   </div>
 
-                  {/* ORIGIN */}
+                  {/* ORIGIN / ETYMOLOGY */}
                   <div className="bg-slate-100/90 p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
-                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center gap-1.5">
-                      <span>🏛️</span> ORIGIN
+                    <div className="text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{source}</span>
                     </div>
-                    <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{details.origin}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{origin}</p>
                   </div>
 
                   {/* FUN FACT */}
@@ -788,7 +813,7 @@ const App: React.FC = () => {
                     <div className="text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
                       <span>💡</span> FUN FACT
                     </div>
-                    <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{details.funFact}</p>
+                    <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{funFact}</p>
                   </div>
                 </div>
 
