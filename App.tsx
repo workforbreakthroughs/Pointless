@@ -1,5 +1,6 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
+import confetti from 'canvas-confetti';
 import { GameState, GameStatus, QuestState } from './types';
 import { fetchNewWord } from './services/geminiService';
 import { getTierForLevel } from './services/wordNetService';
@@ -121,6 +122,42 @@ const App: React.FC = () => {
   const [showWinModal, setShowWinModal] = useState(true);
   const [etymologyInfo, setEtymologyInfo] = useState<EtymologyDetails | null>(null);
   const timerRef = useRef<number | null>(null);
+
+  // Confetti helper for victory celebration
+  const triggerConfettiAnimation = useCallback(() => {
+    // Left burst
+    confetti({
+      particleCount: 80,
+      angle: 60,
+      spread: 60,
+      origin: { x: 0.1, y: 0.7 },
+      colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
+    });
+    // Right burst
+    confetti({
+      particleCount: 80,
+      angle: 120,
+      spread: 60,
+      origin: { x: 0.9, y: 0.7 },
+      colors: ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6']
+    });
+    // Center shower
+    setTimeout(() => {
+      confetti({
+        particleCount: 70,
+        spread: 100,
+        origin: { x: 0.5, y: 0.4 },
+        colors: ['#fef08a', '#34d399', '#38bdf8', '#f472b6']
+      });
+    }, 250);
+  }, []);
+
+  // Trigger celebratory confetti on victory
+  useEffect(() => {
+    if (game.status === 'WON') {
+      triggerConfettiAnimation();
+    }
+  }, [game.status, triggerConfettiAnimation]);
 
   // Fetch etymology when game is won or lost
   useEffect(() => {
@@ -709,7 +746,7 @@ const App: React.FC = () => {
                       <button onClick={() => startNewGame(true)} className="glass-pill-dark text-white px-5 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center gap-1.5">
                         <span>🚀</span> Next Level ({game.level + 1})
                       </button>
-                      <button onClick={() => setShowWinModal(true)} className="glass-button text-slate-800 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center gap-1.5">
+                      <button onClick={() => { setShowWinModal(true); triggerConfettiAnimation(); }} className="glass-button text-slate-800 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center gap-1.5">
                         <span>💡</span> Word Info
                       </button>
                       <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-4 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white transition-all flex items-center gap-1.5">
@@ -775,7 +812,14 @@ const App: React.FC = () => {
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-slate-200/80 pb-3 shrink-0">
                   <div className="flex items-center gap-2.5">
-                    <span className="text-3xl sm:text-4xl">🎉</span>
+                    <button 
+                      onClick={triggerConfettiAnimation}
+                      className="text-3xl sm:text-4xl hover:scale-125 transition-transform cursor-pointer active:scale-90"
+                      title="Click for confetti!"
+                      aria-label="Celebrate with confetti"
+                    >
+                      🎉
+                    </button>
                     <div>
                       <h3 className="text-2xl sm:text-3xl font-heading text-emerald-600 leading-none">Well Done!</h3>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 mt-1 block">Level {game.level} Cleared!</span>
