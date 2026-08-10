@@ -35,32 +35,23 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
         rounded: "rounded-lg sm:rounded-xl lg:rounded-2xl border-2 sm:border-3 lg:border-4",
         underline: "bottom-1 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
       };
-    } else if (wordLength <= 13) {
-      // 12-13 letters - intermediate smooth scaling between 11-letter (28px) and 14-letter (20px) words
+    } else if (wordLength === 12) {
+      // 12 letters - intermediate size between 11-letter (28px / 44px) and 13-14 letter (24px / 38px) words
+      return {
+        container: "gap-[2px] xs:gap-[3px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
+        box: "w-[26px] h-[41px] xs:w-[28px] xs:h-[44px] sm:w-9 sm:h-13 md:w-11 md:h-15 lg:w-13 lg:h-17 xl:w-15 xl:h-20",
+        text: "text-[15px] xs:text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-none font-bold",
+        rounded: "rounded-md sm:rounded-xl border sm:border-2 lg:border-3",
+        underline: "bottom-[2px] sm:bottom-1 w-1/3 h-0.5 sm:h-1"
+      };
+    } else {
+      // 13-14 letters - 24px by 38px box on mobile portrait
       return {
         container: "gap-[2px] xs:gap-[3px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
         box: "w-[24px] h-[38px] xs:w-[27px] xs:h-[42px] sm:w-9 sm:h-13 md:w-11 md:h-15 lg:w-13 lg:h-17 xl:w-15 xl:h-20",
         text: "text-sm xs:text-base sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl leading-none font-bold",
         rounded: "rounded-md sm:rounded-xl border sm:border-2 lg:border-3",
         underline: "bottom-[2px] sm:bottom-1 w-1/3 h-0.5 sm:h-1"
-      };
-    } else if (wordLength <= 15) {
-      // 14-15 letters - scaled so all letters fit cleanly on mobile portrait screens
-      return {
-        container: "gap-[1.5px] xs:gap-[2px] sm:gap-1.5 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
-        box: "w-[20px] h-[33px] xs:w-[23px] xs:h-[37px] sm:w-8 sm:h-12 md:w-10 md:h-14 lg:w-12 lg:h-16 xl:w-14 xl:h-18",
-        text: "text-xs xs:text-sm sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-none font-bold",
-        rounded: "rounded-md sm:rounded-xl border sm:border-2 lg:border-3",
-        underline: "bottom-[2px] sm:bottom-1 w-1/3 h-0.5"
-      };
-    } else {
-      // 16+ letters
-      return {
-        container: "gap-[1.5px] sm:gap-1 md:gap-2 lg:gap-2.5 max-w-full flex-nowrap sm:flex-wrap overflow-x-auto sm:overflow-visible py-1 px-0.5",
-        box: "w-[17px] h-[28px] xs:w-[19px] xs:h-[30px] sm:w-8 sm:h-12 md:w-10 md:h-14 lg:w-12 lg:h-16 xl:w-14 xl:h-18",
-        text: "text-[10px] xs:text-[11px] sm:text-lg md:text-xl lg:text-2xl xl:text-3xl leading-none font-bold",
-        rounded: "rounded-[3px] border sm:border-2 lg:border-3",
-        underline: "bottom-0.5 sm:bottom-1 w-1/3 h-[1px]"
       };
     }
   };
