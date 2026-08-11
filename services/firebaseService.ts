@@ -177,6 +177,35 @@ export function getUserSyncKey(): string {
 }
 
 /**
+ * Real-time listener for the current player's own cloud record
+ */
+export function subscribeToPlayerRecord(
+  playerId: string,
+  callback: (record: GlobalScoreRecord | null) => void
+): Unsubscribe {
+  const docRef = doc(db, GLOBAL_SCORES_COLLECTION, playerId);
+
+  return onSnapshot(docRef, (docSnap) => {
+    if (docSnap.exists()) {
+      const data = docSnap.data();
+      callback({
+        id: docSnap.id,
+        playerName: data.playerName || 'Pencil Hero',
+        countryCode: data.countryCode || 'US',
+        level: Math.max(1, Number(data.level) || 1),
+        streak: Math.max(0, Number(data.streak) || 0),
+        updatedAt: data.updatedAt || ''
+      });
+    } else {
+      callback(null);
+    }
+  }, (error) => {
+    console.warn('Error listening to player record:', error);
+    callback(null);
+  });
+}
+
+/**
  * Restores player progress from a unique sync key saved in Firestore
  */
 export async function restorePlayerProgressWithKey(syncKey: string): Promise<{

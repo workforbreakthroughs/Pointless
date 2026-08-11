@@ -19,7 +19,7 @@ interface GlobalLeaderboardModalProps {
   onClose: () => void;
   userCurrentLevel: number;
   userCurrentStreak: number;
-  onProgressRestored?: (restoredLevel: number, restoredStreak: number) => void;
+  onProgressRestored?: (restoredLevel: number, restoredStreak: number, restoredKey: string) => void;
 }
 
 export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
@@ -111,7 +111,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
       setInputSyncKey('');
       
       if (onProgressRestored) {
-        onProgressRestored(rec.level, rec.streak);
+        onProgressRestored(rec.level, rec.streak, rec.id);
       }
     } else {
       setRestoreMessage({

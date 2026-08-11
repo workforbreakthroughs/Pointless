@@ -9,7 +9,16 @@ import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
 import { GlobalLeaderboardModal } from './components/GlobalLeaderboardModal';
-import { subscribeToGlobalTopScore, updatePlayerGlobalScore, getFlagEmoji, GlobalScoreRecord, getOrCreatePlayerId } from './services/firebaseService';
+import { 
+  subscribeToGlobalTopScore, 
+  subscribeToPlayerRecord,
+  updatePlayerGlobalScore, 
+  getFlagEmoji, 
+  GlobalScoreRecord, 
+  getOrCreatePlayerId,
+  setStoredPlayerName,
+  setStoredCountryCode 
+} from './services/firebaseService';
 import DuelHubModal from './components/DuelHubModal';
 import DuelGameScreen from './components/DuelGameScreen';
 import DuelResultModal from './components/DuelResultModal';
@@ -155,6 +164,33 @@ const App: React.FC = () => {
     });
     return () => unsub();
   }, []);
+
+  const [activeSyncKey, setActiveSyncKey] = useState<string>(getOrCreatePlayerId());
+
+  // Subscribe to real-time player cloud record for seamless multi-device level sync
+  useEffect(() => {
+    if (!activeSyncKey) return;
+    const unsub = subscribeToPlayerRecord(activeSyncKey, (record) => {
+      if (record) {
+        setGame(prev => {
+          const cloudLevel = record.level || 1;
+          const cloudStreak = record.streak || 0;
+          if (cloudLevel > prev.level || cloudStreak > prev.currentStreak) {
+            return {
+              ...prev,
+              level: Math.max(prev.level, cloudLevel),
+              currentStreak: Math.max(prev.currentStreak, cloudStreak)
+            };
+          }
+          return prev;
+        });
+        setBestLevel(prev => Math.max(prev, record.level || 1));
+        if (record.playerName) setStoredPlayerName(record.playerName);
+        if (record.countryCode) setStoredCountryCode(record.countryCode);
+      }
+    });
+    return () => unsub();
+  }, [activeSyncKey]);
 
   // Update global player level on Firestore whenever level or streak changes
   useEffect(() => {
@@ -1214,12 +1250,16 @@ const App: React.FC = () => {
         onClose={() => setIsLeaderboardOpen(false)}
         userCurrentLevel={game.level}
         userCurrentStreak={game.currentStreak}
-        onProgressRestored={(restoredLevel, restoredStreak) => {
+        onProgressRestored={(restoredLevel, restoredStreak, restoredKey) => {
+          if (restoredKey) {
+            setActiveSyncKey(restoredKey);
+          }
           setGame(prev => ({
             ...prev,
             level: Math.max(prev.level, restoredLevel),
             currentStreak: Math.max(prev.currentStreak, restoredStreak)
           }));
+          setBestLevel(prev => Math.max(prev, restoredLevel));
         }}
       />
 
