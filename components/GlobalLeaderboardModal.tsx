@@ -9,7 +9,9 @@ import {
   setStoredCountryCode,
   getFlagEmoji,
   POPULAR_COUNTRIES,
-  updatePlayerGlobalScore 
+  updatePlayerGlobalScore,
+  getUserSyncKey,
+  restorePlayerProgressWithKey 
 } from '../services/firebaseService';
 
 interface GlobalLeaderboardModalProps {
@@ -17,6 +19,7 @@ interface GlobalLeaderboardModalProps {
   onClose: () => void;
   userCurrentLevel: number;
   userCurrentStreak: number;
+  onProgressRestored?: (restoredLevel: number, restoredStreak: number) => void;
 }
 
 export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
@@ -24,6 +27,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
   onClose,
   userCurrentLevel,
   userCurrentStreak,
+  onProgressRestored,
 }) => {
   const [leaderboard, setLeaderboard] = useState<GlobalScoreRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -34,11 +38,20 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
   const [tempCountry, setTempCountry] = useState(countryCode);
   const [isSavingProfile, setIsSavingProfile] = useState(false);
 
+  // Device Sync Key state
+  const [syncKey, setSyncKey] = useState(getUserSyncKey());
+  const [isCopied, setIsCopied] = useState(false);
+  const [showSyncBox, setShowSyncBox] = useState(false);
+  const [inputSyncKey, setInputSyncKey] = useState('');
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [restoreMessage, setRestoreMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
   const localPlayerId = getOrCreatePlayerId();
 
   useEffect(() => {
     if (!isOpen) return;
 
+    setSyncKey(getUserSyncKey());
     setIsLoading(true);
     const unsubscribe = subscribeToTopLeaderboard((records) => {
       setLeaderboard(records);
@@ -64,6 +77,48 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
     // Sync to Firestore
     await updatePlayerGlobalScore(userCurrentLevel, userCurrentStreak, updatedName, updatedCountry);
     setIsSavingProfile(false);
+  };
+
+  const handleCopySyncKey = async () => {
+    try {
+      await navigator.clipboard.writeText(syncKey);
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    } catch (err) {
+      // Fallback
+      setIsCopied(true);
+      setTimeout(() => setIsCopied(false), 2000);
+    }
+  };
+
+  const handleRestoreProgress = async () => {
+    if (!inputSyncKey.trim()) return;
+    setIsRestoring(true);
+    setRestoreMessage(null);
+
+    const result = await restorePlayerProgressWithKey(inputSyncKey);
+    setIsRestoring(false);
+
+    if (result.success && result.record) {
+      const rec = result.record;
+      setPlayerName(rec.playerName);
+      setCountryCode(rec.countryCode);
+      setSyncKey(rec.id);
+      setRestoreMessage({
+        type: 'success',
+        text: `Progress restored! Logged in as ${rec.playerName} at Level ${rec.level}.`
+      });
+      setInputSyncKey('');
+      
+      if (onProgressRestored) {
+        onProgressRestored(rec.level, rec.streak);
+      }
+    } else {
+      setRestoreMessage({
+        type: 'error',
+        text: result.message || 'Key not found.'
+      });
+    }
   };
 
   return (
@@ -197,6 +252,71 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
             >
               ✏️ Edit Profile
             </button>
+          )}
+        </div>
+
+        {/* Device Sync & Transfer Toggle Box */}
+        <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-3 shrink-0 flex flex-col gap-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="text-base shrink-0">🔑</span>
+              <div className="min-w-0">
+                <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Your Device Sync Key</span>
+                <code className="text-[11px] font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 select-all block truncate max-w-[180px] sm:max-w-[280px]">
+                  {syncKey}
+                </code>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                onClick={handleCopySyncKey}
+                className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl transition-all shadow-2xs flex items-center gap-1"
+                title="Copy Unique Key"
+              >
+                {isCopied ? '✓ Copied!' : '📋 Copy Key'}
+              </button>
+              <button
+                onClick={() => setShowSyncBox(!showSyncBox)}
+                className="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-xl transition-all shadow-2xs"
+              >
+                {showSyncBox ? 'Close' : '🔄 Sync Device'}
+              </button>
+            </div>
+          </div>
+
+          {/* Sync Key Restore Sub-Panel */}
+          {showSyncBox && (
+            <div className="pt-2.5 border-t border-slate-200/80 flex flex-col gap-2 animate-in fade-in duration-200">
+              <p className="text-[11px] text-slate-600 font-medium leading-tight">
+                Switching devices? Enter or paste your Unique Sync Key from another device to restore your level and rank:
+              </p>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={inputSyncKey}
+                  onChange={(e) => setInputSyncKey(e.target.value)}
+                  placeholder="Paste Unique Sync Key..."
+                  className="flex-1 text-xs font-mono font-semibold bg-white border border-slate-300 rounded-xl px-3 py-1.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-400"
+                />
+                <button
+                  onClick={handleRestoreProgress}
+                  disabled={isRestoring || !inputSyncKey.trim()}
+                  className="text-xs bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-white font-bold px-3 py-1.5 rounded-xl transition-all shrink-0"
+                >
+                  {isRestoring ? 'Restoring...' : 'Restore Level'}
+                </button>
+              </div>
+
+              {restoreMessage && (
+                <div className={`text-xs font-bold p-2 rounded-xl text-center border ${
+                  restoreMessage.type === 'success' 
+                    ? 'bg-emerald-50 text-emerald-800 border-emerald-200' 
+                    : 'bg-rose-50 text-rose-800 border-rose-200'
+                }`}>
+                  {restoreMessage.text}
+                </div>
+              )}
+            </div>
           )}
         </div>
 

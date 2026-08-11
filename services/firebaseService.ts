@@ -160,6 +160,65 @@ export function setStoredCountryCode(code: string): string {
 }
 
 /**
+ * Returns the player's unique device sync key
+ */
+export function getUserSyncKey(): string {
+  return getOrCreatePlayerId();
+}
+
+/**
+ * Restores player progress from a unique sync key saved in Firestore
+ */
+export async function restorePlayerProgressWithKey(syncKey: string): Promise<{
+  success: boolean;
+  message?: string;
+  record?: GlobalScoreRecord;
+}> {
+  const cleanKey = syncKey.trim();
+  if (!cleanKey) {
+    return { success: false, message: 'Please enter a valid unique key.' };
+  }
+
+  try {
+    const docRef = doc(db, GLOBAL_SCORES_COLLECTION, cleanKey);
+    const docSnap = await getDoc(docRef);
+
+    if (!docSnap.exists()) {
+      return { 
+        success: false, 
+        message: 'No record found for this key. Please double-check your key.' 
+      };
+    }
+
+    const data = docSnap.data();
+    const record: GlobalScoreRecord = {
+      id: docSnap.id,
+      playerName: data.playerName || 'Pencil Hero',
+      countryCode: data.countryCode || 'US',
+      level: Math.max(1, Number(data.level) || 1),
+      streak: Math.max(0, Number(data.streak) || 0),
+      updatedAt: data.updatedAt || ''
+    };
+
+    // Update local browser identity and data to this restored sync key
+    localStorage.setItem('pointless_player_id', record.id);
+    setStoredPlayerName(record.playerName);
+    setStoredCountryCode(record.countryCode);
+
+    return {
+      success: true,
+      record
+    };
+  } catch (err) {
+    console.error('Error restoring progress with key:', err);
+    return {
+      success: false,
+      message: 'Failed to restore progress. Please check your network connection.'
+    };
+  }
+}
+
+/**
  * Real-time listener for the top global score (Highest Level reached globally)
  */
 export function subscribeToGlobalTopScore(callback: (topRecord: GlobalScoreRecord | null) => void): Unsubscribe {

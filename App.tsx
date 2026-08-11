@@ -1144,6 +1144,13 @@ const App: React.FC = () => {
         onClose={() => setIsLeaderboardOpen(false)}
         userCurrentLevel={game.level}
         userCurrentStreak={game.currentStreak}
+        onProgressRestored={(restoredLevel, restoredStreak) => {
+          setGame(prev => ({
+            ...prev,
+            level: Math.max(prev.level, restoredLevel),
+            currentStreak: Math.max(prev.currentStreak, restoredStreak)
+          }));
+        }}
       />
 
       <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">
