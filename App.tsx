@@ -618,17 +618,19 @@ const App: React.FC = () => {
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
           </div>
         </div>
-        <div className="flex items-center gap-1.5 sm:gap-2">
+        <div className="flex items-center gap-1 sm:gap-1.5">
           <button 
             onClick={() => setIsLeaderboardOpen(true)} 
-            className="glass-pill-dark text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-xs hover:bg-slate-800 transition-all flex items-center gap-1 border border-amber-400/40"
+            className="bg-amber-100/90 hover:bg-amber-200 text-amber-800 border border-amber-300/90 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 shadow-2xs btn-press"
             title="View Global High Score Leaderboard"
           >
-            <span>👑</span> Peak: Lv {globalTopScore ? globalTopScore.level : 1}
+            <span className="text-xs">👑</span>
+            <span className="hidden xs:inline text-[9px] font-black uppercase text-amber-700">Peak</span>
+            <span>Lv {globalTopScore ? globalTopScore.level : 1}</span>
           </button>
-          <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase tracking-wider shadow-xs hover:bg-white transition-all">Journal</button>
+          <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs hover:bg-white transition-all">Journal</button>
           {game.status !== 'IDLE' && (
-            <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase transition-all">Menu</button>
+            <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase transition-all">Menu</button>
           )}
         </div>
       </header>
