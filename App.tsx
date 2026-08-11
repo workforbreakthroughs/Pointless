@@ -647,23 +647,6 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <button 
-            onClick={() => setIsDuelHubOpen(true)} 
-            className="bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-black transition-all flex items-center gap-1 shadow-2xs btn-press"
-            title="Pointless Duel 1v1 Mode"
-          >
-            <span className="text-xs">🥊</span>
-            <span className="hidden xs:inline uppercase">DUEL</span>
-          </button>
-          <button 
-            onClick={() => setIsLeaderboardOpen(true)} 
-            className="bg-amber-100/90 hover:bg-amber-200 text-amber-800 border border-amber-300/90 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 shadow-2xs btn-press"
-            title="View Global High Score Leaderboard"
-          >
-            <span className="text-xs">👑</span>
-            <span className="hidden xs:inline text-[9px] font-black uppercase text-amber-700">Peak</span>
-            <span>Lv {globalTopScore ? globalTopScore.level : 1}</span>
-          </button>
           <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs hover:bg-white transition-all">Journal</button>
           {game.status !== 'IDLE' && (
             <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase transition-all">Menu</button>

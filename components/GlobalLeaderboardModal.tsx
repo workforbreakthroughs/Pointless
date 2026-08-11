@@ -124,12 +124,12 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
   return (
     <div 
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 bg-slate-950/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-300"
+      className="fixed inset-0 z-50 flex items-start sm:items-center justify-center p-2 sm:p-6 bg-slate-950/40 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-300"
     >
-      <div className="w-full max-w-xl glass-panel bg-white/95 backdrop-blur-md text-slate-900 rounded-3xl p-3.5 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col max-h-[calc(100dvh-1rem)] sm:max-h-[85vh] overflow-hidden relative animate-in zoom-in-95">
+      <div className="w-full max-w-xl glass-panel bg-white/95 backdrop-blur-md text-slate-900 rounded-2xl sm:rounded-3xl p-3 sm:p-6 shadow-2xl border border-white/90 my-auto text-left flex flex-col max-h-[calc(100dvh-0.75rem)] sm:max-h-[88vh] overflow-hidden relative animate-in zoom-in-95">
         
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2.5 sm:pb-3 shrink-0 mb-2 sm:mb-3">
+        <div className="flex items-center justify-between border-b border-slate-200/80 pb-2 sm:pb-3 shrink-0 mb-1.5 sm:mb-3">
           <div className="flex items-center gap-2 sm:gap-2.5">
             <span className="text-2xl sm:text-4xl">👑</span>
             <div>
@@ -149,50 +149,50 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
         </div>
 
         {/* Scrollable Modal Content Body */}
-        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2.5 sm:gap-3.5 px-1.5 py-1 text-slate-900">
+        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2.5 sm:gap-3.5 px-3 sm:px-4 py-2 text-slate-900">
           {/* Global Peak Hero Box */}
           {topRecord ? (
-            <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 rounded-2xl p-3 sm:p-4 shrink-0 shadow-xs flex items-center justify-between gap-3">
-              <div className="flex items-center gap-2.5 sm:gap-3 min-w-0">
-                <div className="w-10 h-10 sm:w-13 sm:h-13 rounded-2xl bg-amber-400 text-amber-950 font-black text-lg sm:text-2xl flex items-center justify-center shadow-md shrink-0 ring-2 ring-amber-300">
+            <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 rounded-2xl p-2.5 sm:p-4 shrink-0 shadow-xs flex items-center justify-between gap-2.5 sm:gap-3">
+              <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+                <div className="w-9 h-9 sm:w-13 sm:h-13 rounded-2xl bg-amber-400 text-amber-950 font-black text-base sm:text-2xl flex items-center justify-center shadow-md shrink-0 ring-2 ring-amber-300">
                   🏆
                 </div>
                 <div className="min-w-0">
                   <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-amber-700 block">
                     Global Record Holder
                   </span>
-                  <span className="text-sm sm:text-lg font-bold text-slate-900 leading-tight flex items-center gap-1.5 truncate">
-                    <span className="text-lg sm:text-xl shrink-0" title={topRecord.countryCode}>
+                  <span className="text-xs sm:text-lg font-bold text-slate-900 leading-tight flex items-center gap-1.5 truncate">
+                    <span className="text-base sm:text-xl shrink-0" title={topRecord.countryCode}>
                       {getFlagEmoji(topRecord.countryCode)}
                     </span>
-                    <span className="truncate max-w-[130px] sm:max-w-[220px]">
+                    <span className="truncate max-w-[120px] sm:max-w-[220px]">
                       {topRecord.playerName}
                     </span>
                   </span>
                   {topRecord.updatedAt && (
-                    <span className="text-[10px] text-slate-500 font-semibold block mt-0.5">
+                    <span className="text-[9px] sm:text-[10px] text-slate-500 font-semibold block mt-0.5">
                       Updated {new Date(topRecord.updatedAt).toLocaleDateString()}
                     </span>
                   )}
                 </div>
               </div>
               <div className="text-right shrink-0">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Peak Level</span>
-                <span className="text-xl sm:text-3xl font-black text-amber-600 tracking-tight leading-none block">
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-wider text-amber-700 block">Peak Level</span>
+                <span className="text-lg sm:text-3xl font-black text-amber-600 tracking-tight leading-none block">
                   Level {topRecord.level}
                 </span>
               </div>
             </div>
           ) : (
-            <div className="bg-slate-100/80 border border-slate-200 rounded-2xl p-3 sm:p-4 text-center text-slate-500 text-xs font-semibold shrink-0">
+            <div className="bg-slate-100/80 border border-slate-200 rounded-2xl p-2.5 sm:p-4 text-center text-slate-500 text-xs font-semibold shrink-0">
               Fetching global top score...
             </div>
           )}
 
           {/* Player Profile Bar with Handle & Country Selection */}
-          <div className="bg-slate-100/90 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+          <div className="bg-slate-100/90 border border-slate-200/80 rounded-2xl p-2 sm:p-3 shrink-0 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0 w-full sm:w-auto">
-              <span className="text-lg sm:text-xl shrink-0" title={`Country: ${countryCode}`}>
+              <span className="text-base sm:text-xl shrink-0" title={`Country: ${countryCode}`}>
                 {getFlagEmoji(countryCode)}
               </span>
               <div className="min-w-0 flex-1 sm:flex-initial">
@@ -258,13 +258,13 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
           </div>
 
           {/* Device Sync & Transfer Toggle Box */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2.5 sm:p-3 shrink-0 flex flex-col gap-2">
+          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-2 sm:p-3 shrink-0 flex flex-col gap-2">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2 min-w-0">
                 <span className="text-base shrink-0">🔑</span>
                 <div className="min-w-0">
                   <span className="text-[10px] font-extrabold uppercase tracking-wider text-slate-400 block">Your Device Sync Key</span>
-                  <code className="text-[11px] font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 select-all block truncate max-w-[160px] sm:max-w-[280px]">
+                  <code className="text-[11px] font-mono font-bold text-slate-800 bg-white px-2 py-0.5 rounded border border-slate-200 select-all block truncate max-w-[150px] sm:max-w-[280px]">
                     {syncKey}
                   </code>
                 </div>
@@ -272,14 +272,14 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
               <div className="flex items-center gap-1.5 shrink-0">
                 <button
                   onClick={handleCopySyncKey}
-                  className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 px-2.5 py-1 rounded-xl transition-all shadow-2xs flex items-center gap-1"
+                  className="text-[11px] font-bold text-slate-700 bg-white hover:bg-slate-100 border border-slate-200 px-2 py-1 rounded-xl transition-all shadow-2xs flex items-center gap-1"
                   title="Copy Unique Key"
                 >
                   {isCopied ? '✓ Copied!' : '📋 Copy Key'}
                 </button>
                 <button
                   onClick={() => setShowSyncBox(!showSyncBox)}
-                  className="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2.5 py-1 rounded-xl transition-all shadow-2xs"
+                  className="text-[11px] font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 px-2 py-1 rounded-xl transition-all shadow-2xs"
                 >
                   {showSyncBox ? 'Close' : '🔄 Sync Device'}
                 </button>
@@ -288,7 +288,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
 
             {/* Sync Key Restore Sub-Panel */}
             {showSyncBox && (
-              <div className="pt-2.5 border-t border-slate-200/80 flex flex-col gap-2 animate-in fade-in duration-200">
+              <div className="pt-2 border-t border-slate-200/80 flex flex-col gap-2 animate-in fade-in duration-200">
                 <p className="text-[11px] text-slate-600 font-medium leading-tight">
                   Switching devices? Enter or paste your Unique Sync Key from another device to restore your level and rank:
                 </p>
@@ -360,11 +360,11 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
                     key={item.id}
                     className={`flex items-center justify-between p-2 sm:p-3 rounded-2xl border transition-all ${
                       isLocalUser 
-                        ? 'bg-amber-50/90 border-amber-400 ring-2 ring-inset ring-amber-400/50 shadow-xs' 
-                        : 'bg-white/70 border-slate-200/80 hover:bg-white'
+                        ? 'bg-amber-50/95 border-2 border-amber-400 shadow-2xs font-semibold' 
+                        : 'bg-white/80 border-slate-200/80 hover:bg-white'
                     }`}
                   >
-                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                    <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 pl-0.5">
                       <span className={`text-xs px-2 py-0.5 rounded-full ${rankBg} shrink-0`}>
                         {rankBadge}
                       </span>
@@ -373,7 +373,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
                       </span>
                       <div className="min-w-0">
                         <span className="text-xs sm:text-sm font-bold text-slate-900 truncate block">
-                          {item.playerName} {isLocalUser && <span className="text-[10px] text-amber-600 font-extrabold uppercase">(You)</span>}
+                          {item.playerName} {isLocalUser && <span className="text-[10px] text-amber-700 font-black uppercase">(You)</span>}
                         </span>
                         {item.streak > 0 && (
                           <span className="text-[10px] font-bold text-amber-600 block">
@@ -383,7 +383,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
                       </div>
                     </div>
 
-                    <div className="text-right shrink-0">
+                    <div className="text-right shrink-0 pr-0.5">
                       <span className="text-xs sm:text-sm font-black text-slate-800 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200/80">
                         Level {item.level}
                       </span>

@@ -1,6 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, 
+  initializeFirestore,
   collection, 
   doc, 
   setDoc, 
@@ -16,10 +17,19 @@ import firebaseConfig from '../firebase-applet-config.json';
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Get Firestore instance using the custom database ID from config if present
-export const db = firebaseConfig.firestoreDatabaseId 
-  ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
-  : getFirestore(app);
+// Get Firestore instance using long-polling fallback auto-detection
+let firestoreDb;
+try {
+  firestoreDb = initializeFirestore(app, {
+    experimentalAutoDetectLongPolling: true,
+  }, firebaseConfig.firestoreDatabaseId || undefined);
+} catch (e) {
+  firestoreDb = firebaseConfig.firestoreDatabaseId 
+    ? getFirestore(app, firebaseConfig.firestoreDatabaseId)
+    : getFirestore(app);
+}
+
+export const db = firestoreDb;
 
 export interface GlobalScoreRecord {
   id: string;
