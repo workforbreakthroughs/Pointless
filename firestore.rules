@@ -3,10 +3,32 @@ service cloud.firestore {
   match /databases/{database}/documents {
     match /global_scores/{scoreId} {
       allow read: if true;
-      allow create, update: if request.resource.data.level is number 
-                            && request.resource.data.level >= 1
-                            && request.resource.data.playerName is string
-                            && request.resource.data.playerName.size() <= 30;
+
+      // Anti-cheat progression rules on document creation
+      allow create: if request.resource.data.level is number
+                    && request.resource.data.level >= 1
+                    && request.resource.data.level <= 2
+                    && request.resource.data.streak is number
+                    && request.resource.data.streak >= 0
+                    && request.resource.data.streak <= 2
+                    && request.resource.data.playerName is string
+                    && request.resource.data.playerName.size() >= 1
+                    && request.resource.data.playerName.size() <= 24
+                    && request.resource.data.countryCode is string
+                    && request.resource.data.countryCode.size() == 2;
+
+      // Anti-cheat progression rules on document updates
+      allow update: if request.resource.data.level is number
+                    && request.resource.data.level >= resource.data.level
+                    && request.resource.data.level <= resource.data.level + 1
+                    && request.resource.data.streak is number
+                    && request.resource.data.streak <= resource.data.streak + 1
+                    && request.resource.data.playerName is string
+                    && request.resource.data.playerName.size() >= 1
+                    && request.resource.data.playerName.size() <= 24
+                    && request.resource.data.countryCode is string
+                    && request.resource.data.countryCode.size() == 2;
+
       allow delete: if false;
     }
   }

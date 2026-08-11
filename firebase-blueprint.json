@@ -10,6 +10,10 @@
           "type": "string",
           "description": "Name or handle of the player"
         },
+        "countryCode": {
+          "type": "string",
+          "description": "2-letter ISO country code or flag identifier"
+        },
         "level": {
           "type": "number",
           "description": "Highest level achieved by player"

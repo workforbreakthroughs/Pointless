@@ -9,7 +9,7 @@ import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
 import { GlobalLeaderboardModal } from './components/GlobalLeaderboardModal';
-import { subscribeToGlobalTopScore, updatePlayerGlobalScore, GlobalScoreRecord } from './services/firebaseService';
+import { subscribeToGlobalTopScore, updatePlayerGlobalScore, getFlagEmoji, GlobalScoreRecord } from './services/firebaseService';
 
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
@@ -639,30 +639,6 @@ const App: React.FC = () => {
             <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>✏️</div>
             <h2 className="text-3xl sm:text-5xl font-heading text-slate-900 tracking-tight">Help Graphite.</h2>
             
-            {/* Global High Score Showcase Banner */}
-            <div 
-              onClick={() => setIsLeaderboardOpen(true)}
-              className="w-full bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 hover:border-amber-400/90 rounded-2xl p-3.5 sm:p-4 text-slate-900 cursor-pointer transition-all hover:scale-[1.01] shadow-xs flex items-center justify-between gap-3"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-400 text-amber-950 font-black text-xl flex items-center justify-center shadow-xs shrink-0 ring-2 ring-amber-300">
-                  👑
-                </div>
-                <div className="text-left">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block">Global Record Holder</span>
-                  <span className="text-xs sm:text-sm font-bold text-slate-900 leading-tight block truncate max-w-[180px] sm:max-w-[280px]">
-                    {globalTopScore ? globalTopScore.playerName : 'Anonymous Hero'}
-                  </span>
-                </div>
-              </div>
-              <div className="text-right shrink-0">
-                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Highest Level</span>
-                <span className="text-lg sm:text-xl font-black text-amber-600 tracking-tight leading-none block">
-                  Level {globalTopScore ? globalTopScore.level : 1}
-                </span>
-              </div>
-            </div>
-
             <div className="glass-card p-5 sm:p-8 rounded-2xl w-full flex flex-col items-center gap-3">
                <p className="text-slate-700 text-base sm:text-xl leading-relaxed italic">
                  "Meet Graphite. He's a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."
@@ -678,6 +654,35 @@ const App: React.FC = () => {
               <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1.5">
                 👑 Global Scores
               </button>
+            </div>
+
+            {/* Global High Score Showcase Banner */}
+            <div 
+              onClick={() => setIsLeaderboardOpen(true)}
+              className="w-full bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 hover:border-amber-400/90 rounded-2xl p-3.5 sm:p-4 text-slate-900 cursor-pointer transition-all hover:scale-[1.01] shadow-xs flex items-center justify-between gap-3 mt-1"
+            >
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-400 text-amber-950 font-black text-xl flex items-center justify-center shadow-xs shrink-0 ring-2 ring-amber-300">
+                  👑
+                </div>
+                <div className="text-left min-w-0">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block">Global Record Holder</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-900 leading-tight flex items-center gap-1.5 truncate">
+                    <span className="text-base shrink-0" title={globalTopScore?.countryCode || 'US'}>
+                      {getFlagEmoji(globalTopScore?.countryCode)}
+                    </span>
+                    <span className="truncate max-w-[150px] sm:max-w-[240px]">
+                      {globalTopScore ? globalTopScore.playerName : 'Anonymous Hero'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Highest Level</span>
+                <span className="text-lg sm:text-xl font-black text-amber-600 tracking-tight leading-none block">
+                  Level {globalTopScore ? globalTopScore.level : 1}
+                </span>
+              </div>
             </div>
           </div>
         ) : game.status === 'LOADING' ? (

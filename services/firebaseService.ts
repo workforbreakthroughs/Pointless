@@ -24,12 +24,92 @@ export const db = firebaseConfig.firestoreDatabaseId
 export interface GlobalScoreRecord {
   id: string;
   playerName: string;
+  countryCode: string;
   level: number;
   streak: number;
   updatedAt: string;
 }
 
 const GLOBAL_SCORES_COLLECTION = 'global_scores';
+
+/**
+ * Converts 2-letter ISO country code into regional indicator flag emoji
+ */
+export function getFlagEmoji(countryCode?: string): string {
+  if (!countryCode || countryCode.length !== 2) return '🌐';
+  const code = countryCode.toUpperCase();
+  if (!/^[A-Z]{2}$/.test(code)) return '🌐';
+  const codePoints = code
+    .split('')
+    .map(char => 127397 + char.charCodeAt(0));
+  return String.fromCodePoint(...codePoints);
+}
+
+/**
+ * Popular countries list for player country selector
+ */
+export const POPULAR_COUNTRIES = [
+  { code: 'US', name: 'United States', flag: '🇺🇸' },
+  { code: 'PH', name: 'Philippines', flag: '🇵🇭' },
+  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧' },
+  { code: 'CA', name: 'Canada', flag: '🇨🇦' },
+  { code: 'AU', name: 'Australia', flag: '🇦🇺' },
+  { code: 'JP', name: 'Japan', flag: '🇯🇵' },
+  { code: 'DE', name: 'Germany', flag: '🇩🇪' },
+  { code: 'FR', name: 'France', flag: '🇫🇷' },
+  { code: 'BR', name: 'Brazil', flag: '🇧🇷' },
+  { code: 'IN', name: 'India', flag: '🇮🇳' },
+  { code: 'ES', name: 'Spain', flag: '🇪🇸' },
+  { code: 'IT', name: 'Italy', flag: '🇮🇹 font' },
+  { code: 'MX', name: 'Mexico', flag: '🇲🇽' },
+  { code: 'SG', name: 'Singapore', flag: '🇸🇬' },
+  { code: 'KR', name: 'South Korea', flag: '🇰🇷' },
+  { code: 'NZ', name: 'New Zealand', flag: '🇳🇿' },
+  { code: 'NL', name: 'Netherlands', flag: '🇳🇱' },
+  { code: 'ID', name: 'Indonesia', flag: '🇮🇩' },
+  { code: 'MY', name: 'Malaysia', flag: '🇲🇾' },
+  { code: 'VN', name: 'Vietnam', flag: '🇻🇳' },
+  { code: 'TH', name: 'Thailand', flag: '🇹🇭' },
+  { code: 'ZA', name: 'South Africa', flag: '🇿🇦' },
+  { code: 'AR', name: 'Argentina', flag: '🇦🇷' },
+  { code: 'CL', name: 'Chile', flag: '🇨🇱' },
+  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪' },
+  { code: 'SE', name: 'Sweden', flag: '🇸🇪' },
+  { code: 'NO', name: 'Norway', flag: '🇳🇴' },
+  { code: 'FI', name: 'Finland', flag: '🇫🇮' },
+  { code: 'PL', name: 'Poland', flag: '🇵🇱' },
+  { code: 'UN', name: 'Global', flag: '🌐' },
+];
+
+/**
+ * Auto-detect user country code based on browser locale/timezone
+ */
+export function detectUserCountryCode(): string {
+  try {
+    const languages = navigator.languages || [navigator.language];
+    for (const lang of languages) {
+      if (lang && lang.includes('-')) {
+        const parts = lang.split('-');
+        const region = parts[parts.length - 1].toUpperCase();
+        if (region.length === 2 && /^[A-Z]{2}$/.test(region)) {
+          return region;
+        }
+      }
+    }
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (tz) {
+      if (tz.includes('Manila')) return 'PH';
+      if (tz.includes('New_York') || tz.includes('Los_Angeles') || tz.includes('Chicago')) return 'US';
+      if (tz.includes('London')) return 'GB';
+      if (tz.includes('Tokyo')) return 'JP';
+      if (tz.includes('Sydney')) return 'AU';
+      if (tz.includes('Toronto')) return 'CA';
+    }
+  } catch (e) {
+    // fallback
+  }
+  return 'US';
+}
 
 // Helper to get or create a persistent Player ID for local browser
 export function getOrCreatePlayerId(): string {
@@ -61,6 +141,24 @@ export function setStoredPlayerName(name: string): string {
   return cleanName;
 }
 
+// Helper to get local Player Country Code
+export function getStoredCountryCode(): string {
+  const STORAGE_KEY = 'pointless_player_country';
+  let country = localStorage.getItem(STORAGE_KEY);
+  if (!country) {
+    country = detectUserCountryCode();
+    localStorage.setItem(STORAGE_KEY, country);
+  }
+  return country;
+}
+
+// Helper to save local Player Country Code
+export function setStoredCountryCode(code: string): string {
+  const cleanCode = (code.trim().toUpperCase().slice(0, 2)) || 'US';
+  localStorage.setItem('pointless_player_country', cleanCode);
+  return cleanCode;
+}
+
 /**
  * Real-time listener for the top global score (Highest Level reached globally)
  */
@@ -78,6 +176,7 @@ export function subscribeToGlobalTopScore(callback: (topRecord: GlobalScoreRecor
       callback({
         id: docSnap.id,
         playerName: data.playerName || 'Anonymous',
+        countryCode: data.countryCode || 'US',
         level: Number(data.level) || 1,
         streak: Number(data.streak) || 0,
         updatedAt: data.updatedAt || ''
@@ -107,6 +206,7 @@ export function subscribeToTopLeaderboard(callback: (records: GlobalScoreRecord[
       return {
         id: docSnap.id,
         playerName: data.playerName || 'Anonymous',
+        countryCode: data.countryCode || 'US',
         level: Number(data.level) || 1,
         streak: Number(data.streak) || 0,
         updatedAt: data.updatedAt || ''
@@ -122,19 +222,26 @@ export function subscribeToTopLeaderboard(callback: (records: GlobalScoreRecord[
 /**
  * Submit or update a player's level to Firestore
  */
-export async function updatePlayerGlobalScore(level: number, streak: number = 0, playerName?: string): Promise<boolean> {
+export async function updatePlayerGlobalScore(
+  level: number, 
+  streak: number = 0, 
+  playerName?: string,
+  countryCode?: string
+): Promise<boolean> {
   try {
     const playerId = getOrCreatePlayerId();
     const finalName = playerName || getStoredPlayerName();
+    const finalCountry = countryCode || getStoredCountryCode();
     const docRef = doc(db, GLOBAL_SCORES_COLLECTION, playerId);
 
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const existingLevel = Number(docSnap.data().level) || 0;
-      // Only update if current level is higher, OR level is equal (to update streak/name)
+      // Update if current level is higher or equal (to update handle/country)
       if (level >= existingLevel) {
         await setDoc(docRef, {
           playerName: finalName,
+          countryCode: finalCountry,
           level: Math.max(level, existingLevel),
           streak: Math.max(streak, Number(docSnap.data().streak) || 0),
           updatedAt: new Date().toISOString()
@@ -145,6 +252,7 @@ export async function updatePlayerGlobalScore(level: number, streak: number = 0,
       // First submission
       await setDoc(docRef, {
         playerName: finalName,
+        countryCode: finalCountry,
         level: Math.max(1, level),
         streak: Math.max(0, streak),
         updatedAt: new Date().toISOString()
