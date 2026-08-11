@@ -2,6 +2,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { 
   getFirestore, 
   initializeFirestore,
+  setLogLevel,
   collection, 
   doc, 
   setDoc, 
@@ -14,14 +15,21 @@ import {
 } from 'firebase/firestore';
 import firebaseConfig from '../firebase-applet-config.json';
 
+// Silence non-fatal Firestore network debug logs
+try {
+  setLogLevel('silent');
+} catch (e) {
+  // ignore
+}
+
 // Initialize Firebase App
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
-// Get Firestore instance using long-polling fallback auto-detection
+// Get Firestore instance using long-polling for sandboxed proxy environments
 let firestoreDb;
 try {
   firestoreDb = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
   }, firebaseConfig.firestoreDatabaseId || undefined);
 } catch (e) {
   firestoreDb = firebaseConfig.firestoreDatabaseId 
