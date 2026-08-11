@@ -149,7 +149,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
         </div>
 
         {/* Scrollable Modal Content Body */}
-        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2.5 sm:gap-3.5 pr-1 text-slate-900">
+        <div className="flex-1 overflow-y-auto min-h-0 flex flex-col gap-2.5 sm:gap-3.5 px-1.5 py-1 text-slate-900">
           {/* Global Peak Hero Box */}
           {topRecord ? (
             <div className="bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 rounded-2xl p-3 sm:p-4 shrink-0 shadow-xs flex items-center justify-between gap-3">
@@ -360,7 +360,7 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
                     key={item.id}
                     className={`flex items-center justify-between p-2 sm:p-3 rounded-2xl border transition-all ${
                       isLocalUser 
-                        ? 'bg-amber-50/90 border-amber-300 ring-2 ring-amber-400/40 shadow-xs' 
+                        ? 'bg-amber-50/90 border-amber-400 ring-2 ring-inset ring-amber-400/50 shadow-xs' 
                         : 'bg-white/70 border-slate-200/80 hover:bg-white'
                     }`}
                   >
