@@ -3,12 +3,12 @@ import React from 'react';
 
 interface KeyboardProps {
   guessedLetters: string[];
-  removedLetters: string[];
+  removedLetters?: string[];
   onGuess: (letter: string) => void;
   disabled: boolean;
 }
 
-const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters, onGuess, disabled }) => {
+const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters = [], onGuess, disabled }) => {
   const rows = [
     'QWERTYUIOP'.split(''),
     'ASDFGHJKL'.split(''),

@@ -3,30 +3,118 @@
     "global_scores": {
       "title": "Global Scores",
       "description": "Leaderboard records of players' highest achieved levels",
-      "type": "collection",
-      "path": "global_scores",
-      "fields": {
+      "type": "object",
+      "properties": {
         "playerName": {
-          "type": "string",
-          "description": "Name or handle of the player"
+          "type": "string"
         },
         "countryCode": {
-          "type": "string",
-          "description": "2-letter ISO country code or flag identifier"
+          "type": "string"
         },
         "level": {
-          "type": "number",
-          "description": "Highest level achieved by player"
+          "type": "number"
         },
         "streak": {
-          "type": "number",
-          "description": "Current win streak"
+          "type": "number"
         },
         "updatedAt": {
-          "type": "string",
-          "description": "ISO timestamp of last update"
+          "type": "string"
         }
       }
+    },
+    "duel_stats": {
+      "title": "Duel Stats",
+      "description": "Competitive duel ratings and stats for players",
+      "type": "object",
+      "properties": {
+        "playerName": {
+          "type": "string"
+        },
+        "countryCode": {
+          "type": "string"
+        },
+        "rating": {
+          "type": "number"
+        },
+        "highestRating": {
+          "type": "number"
+        },
+        "wins": {
+          "type": "number"
+        },
+        "losses": {
+          "type": "number"
+        },
+        "draws": {
+          "type": "number"
+        },
+        "streak": {
+          "type": "number"
+        },
+        "level": {
+          "type": "number"
+        },
+        "updatedAt": {
+          "type": "string"
+        }
+      }
+    },
+    "duels": {
+      "title": "Duels",
+      "description": "Asynchronous 1v1 5-word word duels between players",
+      "type": "object",
+      "properties": {
+        "playerAId": {
+          "type": "string"
+        },
+        "playerBId": {
+          "type": "string"
+        },
+        "playerAHandle": {
+          "type": "string"
+        },
+        "playerBHandle": {
+          "type": "string"
+        },
+        "playerACountry": {
+          "type": "string"
+        },
+        "playerBCountry": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "acceptedAt": {
+          "type": "string"
+        },
+        "completedAt": {
+          "type": "string"
+        }
+      }
+    }
+  },
+  "firestore": {
+    "/global_scores/{scoreId}": {
+      "schema": {
+        "$ref": "#/entities/global_scores"
+      },
+      "description": "Global highest level records"
+    },
+    "/duel_stats/{playerId}": {
+      "schema": {
+        "$ref": "#/entities/duel_stats"
+      },
+      "description": "Player competitive duel profiles and ratings"
+    },
+    "/duels/{duelId}": {
+      "schema": {
+        "$ref": "#/entities/duels"
+      },
+      "description": "Asynchronous duels and results"
     }
   }
 }

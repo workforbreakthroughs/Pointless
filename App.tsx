@@ -9,7 +9,11 @@ import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
 import { GlobalLeaderboardModal } from './components/GlobalLeaderboardModal';
-import { subscribeToGlobalTopScore, updatePlayerGlobalScore, getFlagEmoji, GlobalScoreRecord } from './services/firebaseService';
+import { subscribeToGlobalTopScore, updatePlayerGlobalScore, getFlagEmoji, GlobalScoreRecord, getOrCreatePlayerId } from './services/firebaseService';
+import DuelHubModal from './components/DuelHubModal';
+import DuelGameScreen from './components/DuelGameScreen';
+import DuelResultModal from './components/DuelResultModal';
+import { DuelRecord, PlayerDuelStats, getPlayerDuelStats, createDuelChallenge } from './services/duelService';
 
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
@@ -125,7 +129,24 @@ const App: React.FC = () => {
   const [etymologyInfo, setEtymologyInfo] = useState<EtymologyDetails | null>(null);
   const [globalTopScore, setGlobalTopScore] = useState<GlobalScoreRecord | null>(null);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
+  const [isDuelHubOpen, setIsDuelHubOpen] = useState(false);
+  const [activeDuel, setActiveDuel] = useState<DuelRecord | null>(null);
+  const [completedDuel, setCompletedDuel] = useState<DuelRecord | null>(null);
+  const [playerDuelStats, setPlayerDuelStats] = useState<PlayerDuelStats | null>(null);
+  const [urlChallengeDuelId, setUrlChallengeDuelId] = useState<string | null>(null);
+
   const timerRef = useRef<number | null>(null);
+
+  // Check URL params for ?duel=duel_xxx and fetch player duel stats
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const duelParam = urlParams.get('duel');
+    if (duelParam) {
+      setUrlChallengeDuelId(duelParam);
+      setIsDuelHubOpen(true);
+    }
+    getPlayerDuelStats().then(setPlayerDuelStats);
+  }, []);
 
   // Subscribe to real-time global top score
   useEffect(() => {
@@ -388,6 +409,13 @@ const App: React.FC = () => {
 
   const timerPercentage = (game.timeLeft / game.initialTime) * 100;
 
+  const fallbackDetails = getWordDetails(game.word, game.clue, game.extraClue, game.category);
+  const modalDefinition = game.clue || etymologyInfo?.definition || fallbackDetails.definition;
+  const modalOrigin = etymologyInfo?.origin || fallbackDetails.origin;
+  const modalFunFact = etymologyInfo?.funFact || fallbackDetails.funFact;
+  const modalPhonetic = etymologyInfo?.phonetic;
+  const modalSource = etymologyInfo?.source || "Princeton WordNet 3.1 Lexicon";
+
   return (
     <div className={`min-h-dvh flex flex-col items-center py-2 sm:py-4 px-2 sm:px-4 md:px-6 lg:px-8 max-w-6xl mx-auto transition-all duration-300 ${isShaking ? 'bg-red-100/50' : ''}`}>
       
@@ -620,6 +648,14 @@ const App: React.FC = () => {
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
           <button 
+            onClick={() => setIsDuelHubOpen(true)} 
+            className="bg-amber-500 hover:bg-amber-600 text-white border border-amber-600 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-black transition-all flex items-center gap-1 shadow-2xs btn-press"
+            title="Pointless Duel 1v1 Mode"
+          >
+            <span className="text-xs">🥊</span>
+            <span className="hidden xs:inline uppercase">DUEL</span>
+          </button>
+          <button 
             onClick={() => setIsLeaderboardOpen(true)} 
             className="bg-amber-100/90 hover:bg-amber-200 text-amber-800 border border-amber-300/90 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1 shadow-2xs btn-press"
             title="View Global High Score Leaderboard"
@@ -652,6 +688,12 @@ const App: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full mt-2">
               <button onClick={() => startNewGame()} className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all">
                  Play Level {game.level}
+              </button>
+              <button 
+                onClick={() => setIsDuelHubOpen(true)}
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm sm:text-base px-6 py-3.5 rounded-full shadow-md hover:bg-amber-600 transition-all flex items-center justify-center gap-1.5 active:scale-98"
+              >
+                🥊 Pointless Duel
               </button>
               <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1.5">
                 👑 Global Scores
@@ -852,15 +894,7 @@ const App: React.FC = () => {
         )}
 
         {/* Full-Screen Translucent Victory Modal for Won State */}
-        {game.status === 'WON' && showWinModal && (() => {
-          const fallbackDetails = getWordDetails(game.word, game.clue, game.extraClue, game.category);
-          const definition = game.clue || etymologyInfo?.definition || fallbackDetails.definition;
-          const origin = etymologyInfo?.origin || fallbackDetails.origin;
-          const funFact = etymologyInfo?.funFact || fallbackDetails.funFact;
-          const phonetic = etymologyInfo?.phonetic;
-          const source = etymologyInfo?.source || "Princeton WordNet 3.1 Lexicon";
-
-          return (
+        {game.status === 'WON' && showWinModal && (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowWinModal(false); }}
               className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
@@ -905,8 +939,8 @@ const App: React.FC = () => {
                     <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-800/80 block">Correct Word</span>
                     <div className="flex items-center justify-center gap-2 mt-0.5">
                       <span className="text-emerald-600 font-black text-xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
-                      {phonetic && (
-                        <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200/60">{phonetic}</span>
+                      {modalPhonetic && (
+                        <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-emerald-100/80 px-2 py-0.5 rounded-md border border-emerald-200/60">{modalPhonetic}</span>
                       )}
                     </div>
                   </div>
@@ -918,7 +952,7 @@ const App: React.FC = () => {
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                       </div>
-                      <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{definition}"</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{modalDefinition}"</p>
 
                       {/* OTHER MEANINGS & DEFINITIONS */}
                       {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
@@ -946,9 +980,9 @@ const App: React.FC = () => {
                     <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{source}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{modalSource}</span>
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{origin}</p>
+                      <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{modalOrigin}</p>
                     </div>
 
                     {/* FUN FACT */}
@@ -956,7 +990,7 @@ const App: React.FC = () => {
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-800 mb-1 flex items-center gap-1.5">
                         <span>💡</span> FUN FACT
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-emerald-950 leading-relaxed">{funFact}</p>
+                      <p className="text-xs sm:text-sm font-semibold text-emerald-950 leading-relaxed">{modalFunFact}</p>
                     </div>
                   </div>
                 </div>
@@ -995,19 +1029,10 @@ const App: React.FC = () => {
 
               </div>
             </div>
-          );
-        })()}
+        )}
 
         {/* Full-Screen Translucent Snapped Modal for Lost State */}
-        {game.status === 'LOST' && showLossModal && (() => {
-          const fallbackDetails = getWordDetails(game.word, game.clue, game.extraClue, game.category);
-          const definition = game.clue || etymologyInfo?.definition || fallbackDetails.definition;
-          const origin = etymologyInfo?.origin || fallbackDetails.origin;
-          const funFact = etymologyInfo?.funFact || fallbackDetails.funFact;
-          const phonetic = etymologyInfo?.phonetic;
-          const source = etymologyInfo?.source || "Princeton WordNet 3.1 Lexicon";
-
-          return (
+        {game.status === 'LOST' && showLossModal && (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
               className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/40 backdrop-blur-sm animate-in fade-in duration-300"
@@ -1045,8 +1070,8 @@ const App: React.FC = () => {
                     <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 block">Answer Word</span>
                     <div className="flex items-center justify-center gap-2 mt-0.5">
                       <span className="text-amber-600 font-black text-xl sm:text-4xl uppercase tracking-widest">{game.word}</span>
-                      {phonetic && (
-                        <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/60">{phonetic}</span>
+                      {modalPhonetic && (
+                        <span className="text-slate-500 font-serif italic text-xs sm:text-sm bg-amber-100/80 px-2 py-0.5 rounded-md border border-amber-200/60">{modalPhonetic}</span>
                       )}
                     </div>
                   </div>
@@ -1058,7 +1083,7 @@ const App: React.FC = () => {
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                       </div>
-                      <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{definition}"</p>
+                      <p className="text-xs sm:text-sm font-bold text-slate-800 italic leading-snug">"{modalDefinition}"</p>
 
                       {/* OTHER MEANINGS & DEFINITIONS */}
                       {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
@@ -1086,9 +1111,9 @@ const App: React.FC = () => {
                     <div className="bg-slate-100/90 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 shadow-2xs">
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 mb-1 flex items-center justify-between">
                         <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
-                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{source}</span>
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">{modalSource}</span>
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{origin}</p>
+                      <p className="text-xs sm:text-sm font-semibold text-slate-700 leading-relaxed">{modalOrigin}</p>
                     </div>
 
                     {/* FUN FACT */}
@@ -1096,7 +1121,7 @@ const App: React.FC = () => {
                       <div className="text-[10px] sm:text-[11px] font-black uppercase tracking-wider text-amber-800 mb-1 flex items-center gap-1.5">
                         <span>💡</span> FUN FACT
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{funFact}</p>
+                      <p className="text-xs sm:text-sm font-semibold text-amber-950 leading-relaxed">{modalFunFact}</p>
                     </div>
                   </div>
                 </div>
@@ -1135,10 +1160,67 @@ const App: React.FC = () => {
 
               </div>
             </div>
-          );
-        })()}
+        )}
       </main>
       
+      {/* Active Duel Gameplay Screen */}
+      {activeDuel && playerDuelStats && (
+        <DuelGameScreen
+          duel={activeDuel}
+          playerStats={playerDuelStats}
+          onComplete={(finishedDuel) => {
+            setActiveDuel(null);
+            setCompletedDuel(finishedDuel);
+            getPlayerDuelStats().then(setPlayerDuelStats);
+          }}
+          onExit={() => setActiveDuel(null)}
+        />
+      )}
+
+      {/* Completed Duel Result Modal */}
+      {completedDuel && (
+        <DuelResultModal
+          duel={completedDuel}
+          onRematch={async () => {
+            const isA = completedDuel.playerAId === getOrCreatePlayerId();
+            const oppId = isA ? completedDuel.playerBId : completedDuel.playerAId;
+            const oppHandle = isA ? completedDuel.playerBHandle : completedDuel.playerAHandle;
+            const oppCountry = isA ? completedDuel.playerBCountry : completedDuel.playerACountry;
+
+            setCompletedDuel(null);
+            const newDuel = await createDuelChallenge({
+              playerBId: oppId,
+              playerBHandle: oppHandle,
+              playerBCountry: oppCountry,
+              isBotMatch: completedDuel.isBotMatch
+            });
+            setActiveDuel(newDuel);
+          }}
+          onDuelAgain={() => {
+            setCompletedDuel(null);
+            setIsDuelHubOpen(true);
+          }}
+          onReturnToGame={() => {
+            setCompletedDuel(null);
+          }}
+        />
+      )}
+
+      {/* Duel Hub Modal */}
+      <DuelHubModal
+        isOpen={isDuelHubOpen}
+        onClose={() => setIsDuelHubOpen(false)}
+        initialChallengeDuelId={urlChallengeDuelId}
+        onStartDuel={(duel) => {
+          setIsDuelHubOpen(false);
+          setActiveDuel(duel);
+        }}
+        onViewDuelResult={(duel) => {
+          setIsDuelHubOpen(false);
+          setCompletedDuel(duel);
+        }}
+      />
+
       <GlobalLeaderboardModal 
         isOpen={isLeaderboardOpen}
         onClose={() => setIsLeaderboardOpen(false)}

@@ -31,5 +31,36 @@ service cloud.firestore {
 
       allow delete: if false;
     }
+
+    match /duel_stats/{playerId} {
+      allow read: if true;
+
+      allow create, update: if request.resource.data.playerName is string
+                            && request.resource.data.playerName.size() >= 1
+                            && request.resource.data.playerName.size() <= 24
+                            && request.resource.data.countryCode is string
+                            && request.resource.data.countryCode.size() == 2
+                            && request.resource.data.rating is number
+                            && request.resource.data.rating >= 100
+                            && request.resource.data.rating <= 5000
+                            && request.resource.data.wins is number
+                            && request.resource.data.losses is number
+                            && request.resource.data.draws is number;
+
+      allow delete: if false;
+    }
+
+    match /duels/{duelId} {
+      allow read: if true;
+
+      allow create: if request.resource.data.playerAId is string
+                    && request.resource.data.status is string
+                    && request.resource.data.words is list
+                    && request.resource.data.words.size() == 5;
+
+      allow update: if request.resource.data.status is string;
+
+      allow delete: if false;
+    }
   }
 }

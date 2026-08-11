@@ -2,13 +2,17 @@
 import React from 'react';
 
 interface WordDisplayProps {
-  word: string;
+  word?: string;
+  phrase?: string;
   guessedLetters: string[];
   revealAll?: boolean;
+  isLost?: boolean;
 }
 
-const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealAll = false }) => {
-  const wordLength = word.length;
+const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters, revealAll = false, isLost = false }) => {
+  const targetWord = word || phrase || '';
+  const shouldRevealAll = revealAll || isLost;
+  const wordLength = targetWord.length;
   
   const getResponsiveClasses = () => {
     if (wordLength <= 6) {
@@ -60,17 +64,17 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, guessedLetters, revealA
 
   return (
     <div className={`flex justify-center items-center ${sizes.container} max-w-full mx-auto px-1 py-1`}>
-      {word.split('').map((char, charIndex) => {
+      {targetWord.split('').map((char, charIndex) => {
         const isLetter = /[A-Z]/.test(char);
         const isGuessedByPlayer = guessedLetters.includes(char);
-        const isRevealed = isGuessedByPlayer || revealAll || !isLetter;
+        const isRevealed = isGuessedByPlayer || shouldRevealAll || !isLetter;
 
         // Determine font color for revealed letters
         let textColor = 'text-transparent';
         if (isRevealed && isLetter) {
           if (isGuessedByPlayer) {
             textColor = 'text-emerald-600 font-black';
-          } else if (revealAll) {
+          } else if (shouldRevealAll) {
             textColor = 'text-red-500 font-black'; // Missed letters when game is lost
           } else {
             textColor = 'text-slate-900';
