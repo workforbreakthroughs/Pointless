@@ -1,0 +1,28 @@
+{
+  "entities": {
+    "global_scores": {
+      "title": "Global Scores",
+      "description": "Leaderboard records of players' highest achieved levels",
+      "type": "collection",
+      "path": "global_scores",
+      "fields": {
+        "playerName": {
+          "type": "string",
+          "description": "Name or handle of the player"
+        },
+        "level": {
+          "type": "number",
+          "description": "Highest level achieved by player"
+        },
+        "streak": {
+          "type": "number",
+          "description": "Current win streak"
+        },
+        "updatedAt": {
+          "type": "string",
+          "description": "ISO timestamp of last update"
+        }
+      }
+    }
+  }
+}

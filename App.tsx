@@ -8,6 +8,8 @@ import { fetchEtymologyDetails, EtymologyDetails } from './services/etymologySer
 import PencilVisual from './components/KangarooVisual';
 import Keyboard from './components/Keyboard';
 import WordDisplay from './components/PhraseDisplay';
+import { GlobalLeaderboardModal } from './components/GlobalLeaderboardModal';
+import { subscribeToGlobalTopScore, updatePlayerGlobalScore, GlobalScoreRecord } from './services/firebaseService';
 
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
@@ -121,7 +123,24 @@ const App: React.FC = () => {
   const [showLossModal, setShowLossModal] = useState(true);
   const [showWinModal, setShowWinModal] = useState(true);
   const [etymologyInfo, setEtymologyInfo] = useState<EtymologyDetails | null>(null);
+  const [globalTopScore, setGlobalTopScore] = useState<GlobalScoreRecord | null>(null);
+  const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const timerRef = useRef<number | null>(null);
+
+  // Subscribe to real-time global top score
+  useEffect(() => {
+    const unsub = subscribeToGlobalTopScore((record) => {
+      setGlobalTopScore(record);
+    });
+    return () => unsub();
+  }, []);
+
+  // Update global player level on Firestore whenever level or streak changes
+  useEffect(() => {
+    if (game.level >= 1) {
+      updatePlayerGlobalScore(game.level, game.currentStreak);
+    }
+  }, [game.level, game.currentStreak]);
 
   // Confetti helper for victory celebration
   const triggerConfettiAnimation = useCallback(() => {
@@ -600,6 +619,13 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-1.5 sm:gap-2">
+          <button 
+            onClick={() => setIsLeaderboardOpen(true)} 
+            className="glass-pill-dark text-amber-300 hover:text-amber-200 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-xs font-black uppercase tracking-wider shadow-xs hover:bg-slate-800 transition-all flex items-center gap-1 border border-amber-400/40"
+            title="View Global High Score Leaderboard"
+          >
+            <span>👑</span> Peak: Lv {globalTopScore ? globalTopScore.level : 1}
+          </button>
           <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase tracking-wider shadow-xs hover:bg-white transition-all">Journal</button>
           {game.status !== 'IDLE' && (
             <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-[11px] sm:text-sm font-bold uppercase transition-all">Menu</button>
@@ -612,6 +638,31 @@ const App: React.FC = () => {
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
             <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>✏️</div>
             <h2 className="text-3xl sm:text-5xl font-heading text-slate-900 tracking-tight">Help Graphite.</h2>
+            
+            {/* Global High Score Showcase Banner */}
+            <div 
+              onClick={() => setIsLeaderboardOpen(true)}
+              className="w-full bg-gradient-to-r from-amber-500/10 via-amber-400/20 to-yellow-500/10 border border-amber-300/80 hover:border-amber-400/90 rounded-2xl p-3.5 sm:p-4 text-slate-900 cursor-pointer transition-all hover:scale-[1.01] shadow-xs flex items-center justify-between gap-3"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-amber-400 text-amber-950 font-black text-xl flex items-center justify-center shadow-xs shrink-0 ring-2 ring-amber-300">
+                  👑
+                </div>
+                <div className="text-left">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-700 block">Global Record Holder</span>
+                  <span className="text-xs sm:text-sm font-bold text-slate-900 leading-tight block truncate max-w-[180px] sm:max-w-[280px]">
+                    {globalTopScore ? globalTopScore.playerName : 'Anonymous Hero'}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="text-[10px] font-black uppercase tracking-wider text-amber-700 block">Highest Level</span>
+                <span className="text-lg sm:text-xl font-black text-amber-600 tracking-tight leading-none block">
+                  Level {globalTopScore ? globalTopScore.level : 1}
+                </span>
+              </div>
+            </div>
+
             <div className="glass-card p-5 sm:p-8 rounded-2xl w-full flex flex-col items-center gap-3">
                <p className="text-slate-700 text-base sm:text-xl leading-relaxed italic">
                  "Meet Graphite. He's a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."
@@ -624,8 +675,8 @@ const App: React.FC = () => {
               <button onClick={() => startNewGame()} className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all">
                  Play Level {game.level}
               </button>
-              <button onClick={() => setIsQuestModalOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white transition-all">
-                🏆 Skill Quests
+              <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1.5">
+                👑 Global Scores
               </button>
             </div>
           </div>
@@ -1080,6 +1131,14 @@ const App: React.FC = () => {
           );
         })()}
       </main>
+      
+      <GlobalLeaderboardModal 
+        isOpen={isLeaderboardOpen}
+        onClose={() => setIsLeaderboardOpen(false)}
+        userCurrentLevel={game.level}
+        userCurrentStreak={game.currentStreak}
+      />
+
       <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">
         Pointless Studios © 2025 • WordNet 3.1 Copyright © Princeton University
       </footer>

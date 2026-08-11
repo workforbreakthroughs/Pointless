@@ -1,0 +1,13 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /global_scores/{scoreId} {
+      allow read: if true;
+      allow create, update: if request.resource.data.level is number 
+                            && request.resource.data.level >= 1
+                            && request.resource.data.playerName is string
+                            && request.resource.data.playerName.size() <= 30;
+      allow delete: if false;
+    }
+  }
+}
