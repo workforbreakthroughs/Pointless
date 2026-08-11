@@ -289,11 +289,12 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
           </div>
 
           {/* Word Display */}
-          <div className="py-2 flex justify-center items-center">
+          <div className="py-1 flex justify-center items-center shrink-0">
             <PhraseDisplay
               phrase={targetWord}
               guessedLetters={guessedLetters}
               isLost={wordStatus === 'LOST'}
+              compact={true}
             />
           </div>
 

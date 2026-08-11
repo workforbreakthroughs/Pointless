@@ -674,9 +674,14 @@ const App: React.FC = () => {
               </button>
               <button 
                 onClick={() => setIsDuelHubOpen(true)}
-                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-sm sm:text-base px-6 py-3.5 rounded-full shadow-md hover:bg-amber-600 transition-all flex items-center justify-center gap-1.5 active:scale-98"
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-6 py-2.5 sm:py-3 rounded-full shadow-md transition-all flex flex-col items-center justify-center active:scale-98"
               >
-                🥊 Pointless Duel
+                <span className="text-sm sm:text-base font-extrabold leading-tight flex items-center gap-1.5">
+                  🥊 Pointless Duel
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-100/90 leading-none mt-0.5">
+                  Beta
+                </span>
               </button>
               <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white transition-all flex items-center justify-center gap-1.5">
                 👑 Global Scores

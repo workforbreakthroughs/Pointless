@@ -7,14 +7,50 @@ interface WordDisplayProps {
   guessedLetters: string[];
   revealAll?: boolean;
   isLost?: boolean;
+  compact?: boolean;
 }
 
-const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters, revealAll = false, isLost = false }) => {
+const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters, revealAll = false, isLost = false, compact = false }) => {
   const targetWord = word || phrase || '';
   const shouldRevealAll = revealAll || isLost;
   const wordLength = targetWord.length;
   
   const getResponsiveClasses = () => {
+    if (compact) {
+      if (wordLength <= 6) {
+        return {
+          container: "gap-1.5 sm:gap-2",
+          box: "w-9 h-12 sm:w-11 sm:h-14 md:w-12 md:h-15",
+          text: "text-xl sm:text-2xl md:text-3xl leading-none",
+          rounded: "rounded-lg sm:rounded-xl border-2",
+          underline: "bottom-1 sm:bottom-1.5 w-1/3 h-0.5 sm:h-1"
+        };
+      } else if (wordLength <= 9) {
+        return {
+          container: "gap-1 sm:gap-1.5",
+          box: "w-8 h-10 sm:w-9.5 sm:h-12 md:w-10.5 md:h-13",
+          text: "text-lg sm:text-xl md:text-2xl leading-none",
+          rounded: "rounded-lg sm:rounded-xl border-2",
+          underline: "bottom-1 w-1/3 h-0.5"
+        };
+      } else if (wordLength <= 11) {
+        return {
+          container: "gap-0.5 sm:gap-1 flex-nowrap sm:flex-wrap overflow-x-auto py-0.5 px-0.5",
+          box: "w-7 h-9 sm:w-8.5 sm:h-11 md:w-9.5 md:h-12",
+          text: "text-base sm:text-lg md:text-xl leading-none",
+          rounded: "rounded-md sm:rounded-lg border-2",
+          underline: "bottom-0.5 w-1/3 h-0.5"
+        };
+      } else {
+        return {
+          container: "gap-0.5 sm:gap-1 flex-nowrap sm:flex-wrap overflow-x-auto py-0.5 px-0.5",
+          box: "w-6 h-8 sm:w-7.5 sm:h-10 md:w-8.5 md:h-[40px]",
+          text: "text-sm sm:text-base md:text-lg leading-none font-bold",
+          rounded: "rounded-md border",
+          underline: "bottom-0.5 w-1/3 h-0.5"
+        };
+      }
+    }
     if (wordLength <= 6) {
       return {
         container: "gap-2 sm:gap-3 lg:gap-4",
