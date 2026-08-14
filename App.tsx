@@ -23,6 +23,8 @@ import DuelHubModal from './components/DuelHubModal';
 import DuelGameScreen from './components/DuelGameScreen';
 import DuelResultModal from './components/DuelResultModal';
 import { DuelRecord, PlayerDuelStats, getPlayerDuelStats, createDuelChallenge } from './services/duelService';
+import { soundService } from './services/soundService';
+import { AudioSettingsModal } from './components/AudioSettingsModal';
 
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
@@ -139,12 +141,20 @@ const App: React.FC = () => {
   const [globalTopScore, setGlobalTopScore] = useState<GlobalScoreRecord | null>(null);
   const [isLeaderboardOpen, setIsLeaderboardOpen] = useState(false);
   const [isDuelHubOpen, setIsDuelHubOpen] = useState(false);
+  const [isAudioSettingsOpen, setIsAudioSettingsOpen] = useState(false);
+  const [soundSettings, setSoundSettings] = useState(soundService.settings);
   const [activeDuel, setActiveDuel] = useState<DuelRecord | null>(null);
   const [completedDuel, setCompletedDuel] = useState<DuelRecord | null>(null);
   const [playerDuelStats, setPlayerDuelStats] = useState<PlayerDuelStats | null>(null);
   const [urlChallengeDuelId, setUrlChallengeDuelId] = useState<string | null>(null);
 
   const timerRef = useRef<number | null>(null);
+
+  // Subscribe to audio settings changes
+  useEffect(() => {
+    const unsub = soundService.subscribe(setSoundSettings);
+    return unsub;
+  }, []);
 
   // Check URL params for ?duel=duel_xxx and fetch player duel stats
   useEffect(() => {
@@ -280,11 +290,13 @@ const App: React.FC = () => {
   }, [game.level, bestLevel, solvedWords, game.quests, game.currentStreak, game.perfectStreak]);
 
   const triggerToast = (title: string, msg: string) => {
+    soundService.playAchievement();
     setShowToast({ title, msg });
     setTimeout(() => setShowToast(null), 4000);
   };
 
   const startNewGame = useCallback(async (isLevelUp = false) => {
+    soundService.playPop();
     const nextLevel = isLevelUp ? game.level + 1 : game.level;
     setShowLossModal(true);
     setShowWinModal(true);
@@ -327,7 +339,11 @@ const App: React.FC = () => {
         setGame(prev => {
           if (prev.timeLeft <= 1) {
             if (timerRef.current) clearInterval(timerRef.current);
+            soundService.playLoss();
             return { ...prev, timeLeft: 0, status: 'LOST', currentStreak: 0, perfectStreak: 0 };
+          }
+          if (prev.timeLeft <= 6 && prev.timeLeft > 1) {
+            soundService.playTick();
           }
           return { ...prev, timeLeft: prev.timeLeft - 1 };
         });
@@ -344,7 +360,10 @@ const App: React.FC = () => {
     const isCorrect = game.word.includes(letter);
     let newCumulativeStreak = isCorrect ? game.currentStreak + 1 : 0;
     
-    if (!isCorrect) {
+    if (isCorrect) {
+      soundService.playCorrect(newCumulativeStreak);
+    } else {
+      soundService.playWrong();
       setIsShaking(true);
       setLastGuessWasWrong(true);
       setTimeout(() => {
@@ -368,6 +387,7 @@ const App: React.FC = () => {
 
     if (allGuessed) {
       newStatus = 'WON';
+      soundService.playWin();
       const timeTaken = game.initialTime - game.timeLeft;
       
       if (game.word.length >= 7 && timeTaken <= 15 && !game.quests.speedDemon) {
@@ -421,6 +441,7 @@ const App: React.FC = () => {
       }
     } else if (newMistakes >= game.maxMistakes) {
       newStatus = 'LOST';
+      soundService.playLoss();
       newCumulativeStreak = 0;
       newPerfectStreak = 0;
     }
@@ -676,9 +697,20 @@ const App: React.FC = () => {
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
-          <button onClick={() => setIsQuestModalOpen(true)} className="glass-button text-slate-800 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs hover:bg-white transition-all">Journal</button>
+          <button 
+            onClick={() => {
+              soundService.playPop();
+              setIsAudioSettingsOpen(true);
+            }} 
+            className="glass-button text-slate-800 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs hover:bg-white transition-all flex items-center gap-1"
+            title="Audio & Background Music Settings"
+          >
+            <span>{soundSettings.bgmEnabled ? '🎵' : soundSettings.sfxEnabled ? '🔊' : '🔇'}</span>
+            <span className="hidden xs:inline text-[10px]">{soundSettings.bgmEnabled ? 'Music' : soundSettings.sfxEnabled ? 'SFX' : 'Muted'}</span>
+          </button>
+          <button onClick={() => { soundService.playPop(); setIsQuestModalOpen(true); }} className="glass-button text-slate-800 px-2.5 sm:px-3 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase tracking-wider shadow-2xs hover:bg-white transition-all">Journal</button>
           {game.status !== 'IDLE' && (
-            <button onClick={() => setGame(prev => ({...prev, status: 'IDLE'}))} className="glass-pill text-slate-600 hover:text-slate-900 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase transition-all">Menu</button>
+            <button onClick={() => { soundService.playPop(); setGame(prev => ({...prev, status: 'IDLE'})); }} className="glass-pill text-slate-600 hover:text-slate-900 px-2 sm:px-2.5 py-1 rounded-full text-[10px] sm:text-xs font-bold uppercase transition-all">Menu</button>
           )}
         </div>
       </header>
@@ -800,6 +832,7 @@ const App: React.FC = () => {
               <div className="flex justify-center gap-3 sm:gap-6 items-center shrink-0 my-0.5">
                 {[
                   { q: 'streakMaster', i: '🔍', c: 'blue', a: () => {
+                      soundService.playReveal();
                       const unrevealed = game.word.split('').filter(c => !game.guessedLetters.includes(c) && /[A-Z]/.test(c));
                       if (unrevealed.length > 0) {
                         const chosen = unrevealed[Math.floor(Math.random() * unrevealed.length)];
@@ -809,6 +842,7 @@ const App: React.FC = () => {
                       setGame(prev => ({ ...prev, powers: { ...prev.powers, revealLetterUsed: true } }));
                   }, used: game.powers.revealLetterUsed, label: 'Reveal' },
                   { q: 'speedDemon', i: '💡', c: 'amber', a: () => {
+                      soundService.playHint();
                       setGame(prev => ({ ...prev, powers: { ...prev.powers, extraHintUsed: true } }));
                       let hintMsg = game.extraClue;
                       if (!hintMsg || hintMsg.startsWith('Category:') || hintMsg.toLowerCase().includes(game.category.toLowerCase())) {
@@ -821,6 +855,7 @@ const App: React.FC = () => {
                       triggerToast("HINT 💡", hintMsg);
                   }, used: game.powers.extraHintUsed, label: 'Hint' },
                   { q: 'perfectionist', i: '🧹', c: 'pink', a: () => {
+                      soundService.playEraser();
                       const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l) && !game.removedLetters.includes(l));
                       const toRem: string[] = [];
                       for(let i=0; i<3 && alpha.length > 0; i++) {
@@ -1262,6 +1297,11 @@ const App: React.FC = () => {
             perfectStreak: 0
           }));
         }}
+      />
+
+      <AudioSettingsModal
+        isOpen={isAudioSettingsOpen}
+        onClose={() => setIsAudioSettingsOpen(false)}
       />
 
       <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">

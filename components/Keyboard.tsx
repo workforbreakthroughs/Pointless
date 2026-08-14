@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { soundService } from '../services/soundService';
 
 interface KeyboardProps {
   guessedLetters: string[];
@@ -15,6 +16,11 @@ const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters = []
     'ZXCVBNM'.split('')
   ];
 
+  const handleKeyClick = (letter: string) => {
+    soundService.playTap();
+    onGuess(letter);
+  };
+
   return (
     <div className="flex flex-col gap-1.5 sm:gap-2 lg:gap-3 w-full max-w-4xl mx-auto px-1 sm:px-2">
       {rows.map((row, rowIndex) => (
@@ -26,7 +32,7 @@ const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters = []
             return (
               <button
                 key={letter}
-                onClick={() => onGuess(letter)}
+                onClick={() => handleKeyClick(letter)}
                 disabled={disabled || isGuessed || isRemoved}
                 className={`
                   h-10 sm:h-11 md:h-12 lg:h-13 flex-1 min-w-0 max-w-[34px] sm:max-w-[44px] md:max-w-[52px] lg:max-w-[58px] flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base md:text-lg lg:text-xl transition-all duration-150 select-none

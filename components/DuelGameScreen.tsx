@@ -7,6 +7,7 @@ import {
   PlayerDuelStats 
 } from '../services/duelService';
 import { getFlagEmoji, getOrCreatePlayerId } from '../services/firebaseService';
+import { soundService } from '../services/soundService';
 import PhraseDisplay from './PhraseDisplay';
 import Keyboard from './Keyboard';
 import PencilVisual from './KangarooVisual';
@@ -89,11 +90,13 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
     setGuessedLetters(newGuessed);
 
     if (targetWord.includes(uppercaseLetter)) {
+      soundService.playCorrect();
       // Check if word solved
       const uniqueLettersInWord = Array.from(new Set(targetWord.split('').filter(c => /[A-Z]/.test(c))));
       const isSolved = uniqueLettersInWord.every(l => newGuessed.includes(l));
 
       if (isSolved) {
+        soundService.playWin();
         const timeSpent = Math.max(1, Math.round((Date.now() - wordStartTime) / 1000));
         const score = calculateWordScore(true, mistakes, timeSpent, hintsUsed);
         
@@ -118,12 +121,14 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
       }
     } else {
       // Wrong guess
+      soundService.playWrong();
       const newMistakes = mistakes + 1;
       setMistakes(newMistakes);
       setIsWrongGuess(true);
       setTimeout(() => setIsWrongGuess(false), 500);
 
       if (newMistakes >= 7) {
+        soundService.playLoss();
         const timeSpent = Math.max(1, Math.round((Date.now() - wordStartTime) / 1000));
         const score = 0; // Failed word
 
@@ -155,12 +160,14 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
     const updated = await submitDuelResult(duel.id, finalResults);
     setIsSubmitting(false);
     if (updated) {
+      soundService.playAchievement();
       onComplete(updated);
     }
   };
 
   // Advance to next word
   const handleNextWord = () => {
+    soundService.playPop();
     if (currentWordIdx < 4) {
       setCurrentWordIdx(prev => prev + 1);
     }
@@ -171,6 +178,7 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
     if (wordStatus !== 'PLAYING' || hintsUsed.revealLetter) return;
     const unrevealed = targetWord.split('').filter(c => /[A-Z]/.test(c) && !guessedLetters.includes(c));
     if (unrevealed.length > 0) {
+      soundService.playReveal();
       const pick = unrevealed[Math.floor(Math.random() * unrevealed.length)];
       setHintsUsed(prev => ({ ...prev, revealLetter: true }));
       handleGuess(pick);
@@ -179,12 +187,14 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
 
   const handleExtraHint = () => {
     if (wordStatus !== 'PLAYING' || hintsUsed.extraHint) return;
+    soundService.playHint();
     setExtraClueShown(true);
     setHintsUsed(prev => ({ ...prev, extraHint: true }));
   };
 
   const handleRemoveWrong = () => {
     if (wordStatus !== 'PLAYING' || hintsUsed.removeWrong) return;
+    soundService.playEraser();
     const allAlphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
     const wrongAlphabet = allAlphabet.filter(c => !targetWord.includes(c) && !guessedLetters.includes(c));
     // Pick 3 wrong letters to remove
