@@ -31,8 +31,8 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
   if (!isOpen) return null;
 
   const tracks: { id: BgmTrackId; name: string; icon: string; desc: string }[] = [
-    { id: 'lofi', name: 'Lofi Study', icon: '☕', desc: 'Warm Rhodes chords & cozy sub-bass' },
     { id: 'library', name: 'Tranquil Library', icon: '📖', desc: 'Peaceful celesta & kalimba ambience' },
+    { id: 'lofi', name: 'Lofi Study', icon: '☕', desc: 'Warm Rhodes chords & cozy sub-bass' },
     { id: 'playful', name: 'Playful Focus', icon: '🎨', desc: 'Upbeat acoustic marimba pulse' },
     { id: 'off', name: 'Mute Music', icon: '🔇', desc: 'Only game sound effects' },
   ];

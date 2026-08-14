@@ -11,7 +11,7 @@ interface SoundSettings {
   activeTrack: BgmTrackId;
 }
 
-const SETTINGS_KEY = 'pointless_audio_settings_v1';
+const SETTINGS_KEY = 'pointless_audio_settings_v2';
 
 class SoundEngine {
   private ctx: AudioContext | null = null;
@@ -28,7 +28,7 @@ class SoundEngine {
     bgmEnabled: true,
     sfxVolume: 0.7,
     bgmVolume: 0.35,
-    activeTrack: 'lofi'
+    activeTrack: 'library'
   };
 
   private listeners: Array<(s: SoundSettings) => void> = [];
@@ -57,9 +57,21 @@ class SoundEngine {
 
   private loadSettings() {
     try {
-      const saved = localStorage.getItem(SETTINGS_KEY);
-      if (saved) {
-        this.settings = { ...this.settings, ...JSON.parse(saved) };
+      const savedV2 = localStorage.getItem(SETTINGS_KEY);
+      if (savedV2) {
+        this.settings = { ...this.settings, ...JSON.parse(savedV2) };
+        return;
+      }
+      // Migrate from v1 if present
+      const savedV1 = localStorage.getItem('pointless_audio_settings_v1');
+      if (savedV1) {
+        const parsed = JSON.parse(savedV1);
+        // Switch old default 'lofi' to 'library'
+        if (parsed.activeTrack === 'lofi') {
+          parsed.activeTrack = 'library';
+        }
+        this.settings = { ...this.settings, ...parsed };
+        this.saveSettings();
       }
     } catch (e) {
       console.warn('Could not load audio settings', e);
