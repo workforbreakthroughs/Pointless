@@ -109,11 +109,11 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters,
         let textColor = 'text-transparent';
         if (isRevealed && isLetter) {
           if (isGuessedByPlayer) {
-            textColor = 'text-emerald-600 font-black';
+            textColor = 'text-emerald-600 dark:text-emerald-400 font-black';
           } else if (shouldRevealAll) {
-            textColor = 'text-red-500 font-black'; // Missed letters when game is lost
+            textColor = 'text-red-500 dark:text-red-400 font-black'; // Missed letters when game is lost
           } else {
-            textColor = 'text-slate-900';
+            textColor = 'text-slate-900 dark:text-slate-100';
           }
         }
 
@@ -124,14 +124,14 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters,
               ${sizes.box} flex items-center justify-center 
               ${sizes.text} font-heading shrink-0 box-border overflow-hidden
               ${sizes.rounded}
-              ${isRevealed && isLetter ? `${textColor} glass-card border-white/90 shadow-md` : 'text-transparent glass-card border-white/60 shadow-xs'}
-              ${!isLetter ? 'bg-transparent border-transparent text-slate-400' : ''}
+              ${isRevealed && isLetter ? `${textColor} glass-card border-white/90 dark:border-slate-700/80 shadow-md` : 'text-transparent glass-card border-white/60 dark:border-slate-800/60 shadow-xs'}
+              ${!isLetter ? 'bg-transparent border-transparent text-slate-400 dark:text-slate-500' : ''}
               transition-all duration-300 transform hover:scale-105 relative select-none
             `}
           >
             {isRevealed ? char : ''}
             {!isRevealed && isLetter && (
-              <div className={`absolute ${sizes.underline} bg-emerald-500 shadow-xs rounded-full`} />
+              <div className={`absolute ${sizes.underline} bg-emerald-500 dark:bg-emerald-400 shadow-xs rounded-full`} />
             )}
           </div>
         );

@@ -47,15 +47,15 @@ const PencilVisual: React.FC<PencilVisualProps> = ({ mistakes, maxMistakes, stat
   };
 
   return (
-    <div className={`relative w-full h-full min-h-[90px] sm:min-h-[110px] flex flex-col items-center justify-end overflow-hidden rounded-xl lg:rounded-2xl bg-white border border-slate-200 shadow-inner transition-colors duration-300 ${impact || isSharpening ? 'bg-red-50' : ''}`}>
+    <div className={`relative w-full h-full min-h-[90px] sm:min-h-[110px] flex flex-col items-center justify-end overflow-hidden rounded-xl lg:rounded-2xl bg-white dark:bg-slate-900/90 border border-slate-200 dark:border-slate-700/80 shadow-inner transition-colors duration-300 ${impact || isSharpening ? 'bg-red-50 dark:bg-red-950/40' : ''}`}>
       {/* Background - Blueprints vibe */}
-      <div className="absolute inset-0 opacity-5" style={{ 
+      <div className="absolute inset-0 opacity-5 dark:opacity-10" style={{ 
         backgroundImage: 'linear-gradient(#0ea5e9 1px, transparent 1px), linear-gradient(90deg, #0ea5e9 1px, transparent 1px)',
         backgroundSize: '20px 20px'
       }} />
 
       {/* The Sharpener 3000 (Bottom) */}
-      <div className="absolute bottom-0 w-full h-6 sm:h-8 bg-slate-700 z-20 flex items-center justify-center border-t border-slate-800">
+      <div className="absolute bottom-0 w-full h-6 sm:h-8 bg-slate-700 dark:bg-slate-800 z-20 flex items-center justify-center border-t border-slate-800 dark:border-slate-950">
         <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-slate-900 border border-slate-600 shadow-inner flex items-center justify-center">
            <div className={`w-3 h-1 bg-slate-400 rounded-full ${(mistakes > 0 || isSharpening) ? 'animate-spin' : ''}`} style={{ animationDuration: '0.2s' }} />
         </div>
@@ -87,7 +87,7 @@ const PencilVisual: React.FC<PencilVisualProps> = ({ mistakes, maxMistakes, stat
         </div>
       </div>
 
-      <div className="absolute top-1.5 left-1.5 bg-white/90 border px-1.5 py-0.5 rounded-md text-[9px] sm:text-xs font-bold text-slate-600 z-30 shadow-xs">
+      <div className="absolute top-1.5 left-1.5 bg-white/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700 px-1.5 py-0.5 rounded-md text-[9px] sm:text-xs font-bold text-slate-600 dark:text-slate-300 z-30 shadow-xs">
          {mood.text}
       </div>
 

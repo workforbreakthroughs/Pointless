@@ -37,10 +37,10 @@ const Keyboard: React.FC<KeyboardProps> = ({ guessedLetters, removedLetters = []
                 className={`
                   h-10 sm:h-11 md:h-12 lg:h-13 flex-1 min-w-0 max-w-[34px] sm:max-w-[44px] md:max-w-[52px] lg:max-w-[58px] flex items-center justify-center rounded-xl sm:rounded-2xl font-bold text-xs sm:text-base md:text-lg lg:text-xl transition-all duration-150 select-none
                   ${isGuessed 
-                    ? 'bg-slate-200/50 text-slate-300 opacity-40 border border-slate-200/40' 
+                    ? 'bg-slate-200/50 dark:bg-slate-800/40 text-slate-300 dark:text-slate-600 opacity-40 border border-slate-200/40 dark:border-slate-800/40' 
                     : isRemoved
-                    ? 'bg-red-100/30 text-red-300 opacity-20 border border-red-200/30'
-                    : 'glass-button text-slate-900 font-black shadow-sm hover:brightness-105 active:scale-90 active:bg-slate-200/80'
+                    ? 'bg-red-100/30 dark:bg-red-950/20 text-red-300 dark:text-red-900 opacity-20 border border-red-200/30 dark:border-red-900/30'
+                    : 'glass-button text-slate-900 dark:text-slate-100 font-black shadow-sm hover:brightness-105 active:scale-90 active:bg-slate-200/80 dark:active:bg-slate-800'
                   }
                 `}
               >
