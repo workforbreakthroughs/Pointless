@@ -150,6 +150,56 @@ const App: React.FC = () => {
   const [playerDuelStats, setPlayerDuelStats] = useState<PlayerDuelStats | null>(null);
   const [urlChallengeDuelId, setUrlChallengeDuelId] = useState<string | null>(null);
 
+  // Hell Mode (Secret Mode triggered by double-clicking/tapping "Pointless")
+  const [isHellMode, setIsHellMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('pointless_hell_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const tapCountRef = useRef<number>(0);
+  const tapTimerRef = useRef<number | null>(null);
+
+  const toggleHellMode = useCallback(() => {
+    setIsHellMode(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('pointless_hell_mode', String(next));
+      } catch (e) {
+        console.warn("Storage error", e);
+      }
+      if (next) {
+        soundService.playLoss();
+        triggerToast("🔥 HELL MODE ACTIVATED 😈", "Power-ups disabled. Pure instinct mode!");
+      } else {
+        soundService.playCorrect(1);
+        triggerToast("🕊️ NORMAL MODE RESTORED", "Standard dictionary mode & power-ups restored.");
+      }
+      return next;
+    });
+  }, []);
+
+  const handlePointlessTap = useCallback((e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    tapCountRef.current += 1;
+    if (tapTimerRef.current) {
+      clearTimeout(tapTimerRef.current);
+    }
+    if (tapCountRef.current >= 2) {
+      tapCountRef.current = 0;
+      tapTimerRef.current = null;
+      toggleHellMode();
+    } else {
+      tapTimerRef.current = window.setTimeout(() => {
+        tapCountRef.current = 0;
+        tapTimerRef.current = null;
+      }, 450);
+    }
+  }, [toggleHellMode]);
+
   const timerRef = useRef<number | null>(null);
 
   // Subscribe to audio and theme settings changes
@@ -339,28 +389,7 @@ const App: React.FC = () => {
     }
   }, [game.level, solvedWords]);
 
-  useEffect(() => {
-    if (game.status === 'PLAYING' && game.timeLeft > 0) {
-      timerRef.current = window.setInterval(() => {
-        setGame(prev => {
-          if (prev.timeLeft <= 1) {
-            if (timerRef.current) clearInterval(timerRef.current);
-            soundService.playLoss();
-            return { ...prev, timeLeft: 0, status: 'LOST', currentStreak: 0, perfectStreak: 0 };
-          }
-          if (prev.timeLeft <= 6 && prev.timeLeft > 1) {
-            soundService.playTick();
-          }
-          return { ...prev, timeLeft: prev.timeLeft - 1 };
-        });
-      }, 1000);
-    } else {
-      if (timerRef.current) clearInterval(timerRef.current);
-    }
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [game.status]);
-
-  const handleGuess = (letter: string) => {
+  const handleGuess = useCallback((letter: string) => {
     if (game.status !== 'PLAYING' || game.guessedLetters.includes(letter)) return;
 
     const isCorrect = game.word.includes(letter);
@@ -461,7 +490,47 @@ const App: React.FC = () => {
       perfectStreak: newPerfectStreak,
       quests: { ...prev.quests, ...questUpdate }
     }));
-  };
+  }, [game.status, game.guessedLetters, game.word, game.currentStreak, game.quests, game.mistakes, game.perfectStreak, game.initialTime, game.timeLeft, game.level, game.maxMistakes, game.powers, solvedWords]);
+
+  // Physical keyboard listener for both normal and Hell Mode
+  useEffect(() => {
+    if (game.status !== 'PLAYING') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ignore if typing in an input element (like duel modal or rename)
+      if (document.activeElement && document.activeElement.tagName === 'INPUT') {
+        return;
+      }
+
+      if (/^[a-zA-Z]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        handleGuess(e.key.toUpperCase());
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [game.status, handleGuess]);
+
+  useEffect(() => {
+    if (game.status === 'PLAYING' && game.timeLeft > 0) {
+      timerRef.current = window.setInterval(() => {
+        setGame(prev => {
+          if (prev.timeLeft <= 1) {
+            if (timerRef.current) clearInterval(timerRef.current);
+            soundService.playLoss();
+            return { ...prev, timeLeft: 0, status: 'LOST', currentStreak: 0, perfectStreak: 0 };
+          }
+          if (prev.timeLeft <= 6 && prev.timeLeft > 1) {
+            soundService.playTick();
+          }
+          return { ...prev, timeLeft: prev.timeLeft - 1 };
+        });
+      }, 1000);
+    } else {
+      if (timerRef.current) clearInterval(timerRef.current);
+    }
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, [game.status]);
 
   const timerPercentage = (game.timeLeft / game.initialTime) * 100;
 
@@ -695,8 +764,23 @@ const App: React.FC = () => {
       )}
 
       <header className="w-full flex justify-between items-center mb-2 sm:mb-3 px-1 sm:px-2 shrink-0">
-        <div className="flex items-center gap-1.5 sm:gap-2.5">
-          <h1 className="text-lg sm:text-2xl md:text-3xl font-heading text-slate-800 dark:text-white tracking-tight drop-shadow-xs">Pointless ✏️</h1>
+        <div 
+          onClick={handlePointlessTap}
+          className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer select-none group active:scale-95 transition-transform"
+          title={isHellMode ? "Hell Mode Active (Double-tap to revert to normal)" : "Double-tap for Hell Mode"}
+        >
+          <h1 className={`text-lg sm:text-2xl md:text-3xl font-heading tracking-tight transition-colors duration-200 ${
+            isHellMode 
+              ? 'text-red-500 dark:text-red-400 font-extrabold' 
+              : 'text-slate-800 dark:text-white drop-shadow-xs group-hover:text-slate-900 dark:group-hover:text-slate-100'
+          }`}>
+            Pointless
+          </h1>
+          {isHellMode && (
+            <span className="bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 text-[9px] sm:text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wider">
+              Hell Mode
+            </span>
+          )}
           <div className="flex items-center gap-1 sm:gap-1.5">
             <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
@@ -745,19 +829,34 @@ const App: React.FC = () => {
       <main className={`w-full flex-1 glass-panel rounded-3xl p-2.5 sm:p-4 md:p-5 transition-all flex flex-col justify-between overflow-y-auto max-h-full ${isShaking ? 'animate-shake border-red-300 bg-red-50/50' : ''}`}>
         {game.status === 'IDLE' ? (
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
-            <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>✏️</div>
-            <h2 className="text-3xl sm:text-5xl font-heading text-slate-900 dark:text-white tracking-tight">Help Graphite.</h2>
+            <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>
+              ✏️
+            </div>
+            <h2 className="text-3xl sm:text-5xl font-heading tracking-tight text-slate-900 dark:text-white">
+              {isHellMode ? 'Hell Mode' : 'Help Graphite.'}
+            </h2>
             
-            <div className="glass-card p-5 sm:p-8 rounded-2xl w-full flex flex-col items-center gap-3">
+            <div className="glass-card p-5 sm:p-8 rounded-2xl w-full flex flex-col items-center gap-3 relative">
+               {isHellMode && (
+                 <div className="w-full bg-red-500/10 border border-red-500/20 rounded-xl p-2.5 text-center text-red-600 dark:text-red-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
+                   <span>Hell Mode • Power-ups Disabled</span>
+                 </div>
+               )}
                <p className="text-slate-700 dark:text-slate-200 text-base sm:text-xl leading-relaxed italic">
-                 "Meet Graphite. He's a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."
+                 {isHellMode 
+                   ? '"No power-ups or hints. Rely purely on vocabulary instinct."' 
+                   : '"Meet Graphite. He\'s a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."'
+                 }
                </p>
                <div className="inline-flex items-center gap-2 bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300 border border-emerald-200/80 dark:border-emerald-800/80 px-3.5 py-1 rounded-full text-xs font-bold shadow-2xs">
                  <span>📚</span> Powered by Princeton WordNet® (73,000+ Words)
                </div>
             </div>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full mt-2">
-              <button onClick={() => startNewGame()} className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all">
+              <button 
+                onClick={() => startNewGame()} 
+                className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all"
+              >
                  Play Level {game.level}
               </button>
               <button 
@@ -823,12 +922,16 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 landscape:grid-cols-[1fr_140px] sm:grid-cols-[1fr_150px] md:grid-cols-[1fr_180px] gap-2 landscape:gap-2 sm:gap-2.5 items-stretch shrink-0">
               <div className="glass-card p-2 sm:p-3.5 landscape:p-2 rounded-2xl flex flex-col items-center justify-center text-center">
                 <span className="inline-flex items-center gap-1 glass-pill-dark text-white px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1 shadow-2xs">
-                  <span className="text-yellow-400 font-extrabold">{getTierForLevel(game.level).toUpperCase()}</span>
-                  <span className="text-slate-500">•</span>
+                  {isHellMode ? (
+                    <span className="text-red-400 font-extrabold">HELL MODE</span>
+                  ) : (
+                    <span className="text-yellow-400 font-extrabold">{getTierForLevel(game.level).toUpperCase()}</span>
+                  )}
+                  <span className="text-slate-400">•</span>
                   <span>{game.category}</span>
                 </span>
                 <h2 className="text-xs sm:text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 italic leading-snug px-2">"{game.clue}"</h2>
-                {game.powers.extraHintUsed && (
+                {game.powers.extraHintUsed && !isHellMode && (
                   <div className="mt-1.5 p-1.5 bg-yellow-100/90 dark:bg-yellow-950/70 border border-yellow-300 dark:border-yellow-700/80 rounded-xl text-yellow-950 dark:text-yellow-200 font-bold text-xs animate-in zoom-in shadow-2xs">
                     💡 HINT: {game.extraClue}
                   </div>
@@ -855,74 +958,89 @@ const App: React.FC = () => {
                 <WordDisplay word={game.word} guessedLetters={game.guessedLetters} revealAll={game.status === 'LOST'} />
               </div>
 
-              {/* Power-up buttons */}
-              <div className="flex justify-center gap-2.5 sm:gap-6 items-center shrink-0 my-0.5 landscape:my-0">
-                {[
-                  { q: 'streakMaster', i: '🔍', c: 'blue', a: () => {
-                      soundService.playReveal();
-                      const unrevealed = game.word.split('').filter(c => !game.guessedLetters.includes(c) && /[A-Z]/.test(c));
-                      if (unrevealed.length > 0) {
-                        const chosen = unrevealed[Math.floor(Math.random() * unrevealed.length)];
-                        handleGuess(chosen);
-                        triggerToast("LETTER REVEALED 🔍", `Revealed the letter "${chosen}"!`);
-                      }
-                      setGame(prev => ({ ...prev, powers: { ...prev.powers, revealLetterUsed: true } }));
-                  }, used: game.powers.revealLetterUsed, label: 'Reveal' },
-                  { q: 'speedDemon', i: '💡', c: 'amber', a: () => {
-                      soundService.playHint();
-                      setGame(prev => ({ ...prev, powers: { ...prev.powers, extraHintUsed: true } }));
-                      let hintMsg = game.extraClue;
-                      if (!hintMsg || hintMsg.startsWith('Category:') || hintMsg.toLowerCase().includes(game.category.toLowerCase())) {
-                        const uWord = game.word.toUpperCase();
-                        const vowels = uWord.split('').filter(c => 'AEIOU'.includes(c)).length;
-                        const startChar = uWord.charAt(0);
-                        const endChar = uWord.charAt(uWord.length - 1);
-                        hintMsg = `${uWord.length} letters, ${vowels} vowel${vowels === 1 ? '' : 's'} (Starts with '${startChar}', ends with '${endChar}')`;
-                      }
-                      triggerToast("HINT 💡", hintMsg);
-                  }, used: game.powers.extraHintUsed, label: 'Hint' },
-                  { q: 'perfectionist', i: '🧹', c: 'pink', a: () => {
-                      soundService.playEraser();
-                      const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l) && !game.removedLetters.includes(l));
-                      const toRem: string[] = [];
-                      for(let i=0; i<3 && alpha.length > 0; i++) {
-                        toRem.push(alpha.splice(Math.floor(Math.random()*alpha.length), 1)[0]);
-                      }
-                      if (toRem.length > 0) {
-                        setGame(prev => ({ ...prev, removedLetters: [...prev.removedLetters, ...toRem], powers: { ...prev.powers, removeWrongUsed: true } }));
-                        triggerToast("ERASER ACTIVATED 🧹", `Erased 3 wrong letters from keyboard: ${toRem.join(', ')}`);
-                      } else {
-                        triggerToast("ERASER 🧹", "No more wrong letters left to erase!");
-                      }
-                  }, used: game.powers.removeWrongUsed, label: 'Eraser' }
-                ].map(p => (
-                  <div key={p.label} className="flex flex-col items-center">
-                    <button 
-                      onClick={p.a}
-                      disabled={!game.quests[p.q as keyof QuestState] || p.used || game.status !== 'PLAYING'}
-                      className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 landscape:w-8 landscape:h-8 rounded-2xl flex items-center justify-center text-sm sm:text-xl landscape:text-sm shadow-md transition-all btn-press
-                        ${!game.quests[p.q as keyof QuestState] ? 'bg-slate-200/60 dark:bg-slate-800/40 grayscale opacity-30 border border-slate-300/40 dark:border-slate-700/40' : 
-                          p.used ? 'bg-slate-200/80 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500' : 
-                          p.c === 'blue' ? 'bg-blue-500 text-white shadow-blue-500/20' :
-                          p.c === 'amber' ? 'bg-amber-400 text-white shadow-amber-400/20' : 'bg-pink-500 text-white shadow-pink-500/20'}
-                      `}
-                    >{p.i}</button>
-                    <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mt-0.5 tracking-wider">{p.label}</span>
+              {/* Power-up buttons OR Hell Mode Locked Bar */}
+              {isHellMode ? (
+                <div className="flex justify-center items-center shrink-0 my-0.5 landscape:my-0">
+                  <div className="glass-pill text-slate-500 dark:text-slate-400 px-3 sm:px-4 py-1 rounded-2xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
+                    <span>Power-ups disabled in Hell Mode</span>
                   </div>
-                ))}
-              </div>
+                </div>
+              ) : (
+                <div className="flex justify-center gap-2.5 sm:gap-6 items-center shrink-0 my-0.5 landscape:my-0">
+                  {[
+                    { q: 'streakMaster', i: '🔍', c: 'blue', a: () => {
+                        soundService.playReveal();
+                        const unrevealed = game.word.split('').filter(c => !game.guessedLetters.includes(c) && /[A-Z]/.test(c));
+                        if (unrevealed.length > 0) {
+                          const chosen = unrevealed[Math.floor(Math.random() * unrevealed.length)];
+                          handleGuess(chosen);
+                          triggerToast("LETTER REVEALED 🔍", `Revealed the letter "${chosen}"!`);
+                        }
+                        setGame(prev => ({ ...prev, powers: { ...prev.powers, revealLetterUsed: true } }));
+                    }, used: game.powers.revealLetterUsed, label: 'Reveal' },
+                    { q: 'speedDemon', i: '💡', c: 'amber', a: () => {
+                        soundService.playHint();
+                        setGame(prev => ({ ...prev, powers: { ...prev.powers, extraHintUsed: true } }));
+                        let hintMsg = game.extraClue;
+                        if (!hintMsg || hintMsg.startsWith('Category:') || hintMsg.toLowerCase().includes(game.category.toLowerCase())) {
+                          const uWord = game.word.toUpperCase();
+                          const vowels = uWord.split('').filter(c => 'AEIOU'.includes(c)).length;
+                          const startChar = uWord.charAt(0);
+                          const endChar = uWord.charAt(uWord.length - 1);
+                          hintMsg = `${uWord.length} letters, ${vowels} vowel${vowels === 1 ? '' : 's'} (Starts with '${startChar}', ends with '${endChar}')`;
+                        }
+                        triggerToast("HINT 💡", hintMsg);
+                    }, used: game.powers.extraHintUsed, label: 'Hint' },
+                    { q: 'perfectionist', i: '🧹', c: 'pink', a: () => {
+                        soundService.playEraser();
+                        const alpha = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').filter(l => !game.word.includes(l) && !game.guessedLetters.includes(l) && !game.removedLetters.includes(l));
+                        const toRem: string[] = [];
+                        for(let i=0; i<3 && alpha.length > 0; i++) {
+                          toRem.push(alpha.splice(Math.floor(Math.random()*alpha.length), 1)[0]);
+                        }
+                        if (toRem.length > 0) {
+                          setGame(prev => ({ ...prev, removedLetters: [...prev.removedLetters, ...toRem], powers: { ...prev.powers, removeWrongUsed: true } }));
+                          triggerToast("ERASER ACTIVATED 🧹", `Erased 3 wrong letters from keyboard: ${toRem.join(', ')}`);
+                        } else {
+                          triggerToast("ERASER 🧹", "No more wrong letters left to erase!");
+                        }
+                    }, used: game.powers.removeWrongUsed, label: 'Eraser' }
+                  ].map(p => (
+                    <div key={p.label} className="flex flex-col items-center">
+                      <button 
+                        onClick={p.a}
+                        disabled={!game.quests[p.q as keyof QuestState] || p.used || game.status !== 'PLAYING'}
+                        className={`w-9 h-9 sm:w-11 sm:h-11 md:w-12 md:h-12 landscape:w-8 landscape:h-8 rounded-2xl flex items-center justify-center text-sm sm:text-xl landscape:text-sm shadow-md transition-all btn-press
+                          ${!game.quests[p.q as keyof QuestState] ? 'bg-slate-200/60 dark:bg-slate-800/40 grayscale opacity-30 border border-slate-300/40 dark:border-slate-700/40' : 
+                            p.used ? 'bg-slate-200/80 dark:bg-slate-800/80 text-slate-400 dark:text-slate-500' : 
+                            p.c === 'blue' ? 'bg-blue-500 text-white shadow-blue-500/20' :
+                            p.c === 'amber' ? 'bg-amber-400 text-white shadow-amber-400/20' : 'bg-pink-500 text-white shadow-pink-500/20'}
+                        `}
+                      >{p.i}</button>
+                      <span className="text-[9px] sm:text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase mt-0.5 tracking-wider">{p.label}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
 
-              {/* Keyboard OR Win/Loss Bottom State */}
+              {/* Keyboard OR Hell Mode Word Console OR Win/Loss Bottom State */}
               <div className="shrink-0 mt-0.5 sm:mt-1">
                 {game.status === 'WON' ? (
                   <div className="glass-panel text-slate-900 dark:text-slate-100 rounded-3xl p-3 sm:p-6 landscape:p-2.5 text-center animate-in zoom-in shadow-2xl my-1 sm:my-2 max-w-xl mx-auto border border-white/90 dark:border-slate-700">
-                    <span className="text-[10px] sm:text-sm font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest block mb-0.5">LEVEL {game.level} COMPLETE</span>
-                    <h3 className="text-xl sm:text-3xl font-heading text-slate-900 dark:text-white mb-0.5">Well Done! 🎉</h3>
+                    <span className="text-[10px] sm:text-sm font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest block mb-0.5">
+                      {isHellMode ? 'HELL MODE CLEARED' : `LEVEL ${game.level} COMPLETE`}
+                    </span>
+                    <h3 className="text-xl sm:text-3xl font-heading text-slate-900 dark:text-white mb-0.5">
+                      {isHellMode ? 'Solved!' : 'Well Done! 🎉'}
+                    </h3>
                     <p className="text-slate-700 dark:text-slate-300 mb-2 sm:mb-3 text-xs sm:text-base font-bold">
                       Answer: <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-wider">{game.word}</span>
                     </p>
                     <div className="flex flex-row items-center justify-center gap-2">
-                      <button onClick={() => startNewGame(true)} className="flex-1 sm:flex-initial glass-pill-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                      <button 
+                        onClick={() => startNewGame(true)} 
+                        className="flex-1 sm:flex-initial glass-pill-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
+                      >
                         <span>🚀</span> <span className="hidden xs:inline">Next Level</span><span className="xs:hidden">Next</span> ({game.level + 1})
                       </button>
                       <button onClick={() => { setShowWinModal(true); triggerConfettiAnimation(); }} className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
@@ -932,12 +1050,17 @@ const App: React.FC = () => {
                   </div>
                 ) : game.status === 'LOST' ? (
                   <div className="glass-panel text-slate-900 dark:text-slate-100 rounded-3xl p-3 sm:p-6 landscape:p-2.5 text-center animate-in zoom-in shadow-2xl my-1 sm:my-2 max-w-xl mx-auto border border-white/90 dark:border-slate-700">
-                    <h3 className="text-xl sm:text-3xl font-heading text-red-500 dark:text-red-400 mb-0.5">Snapped! ✏️</h3>
+                    <h3 className="text-xl sm:text-3xl font-heading text-red-500 dark:text-red-400 mb-0.5">
+                      {isHellMode ? 'Out of Chances' : 'Snapped! ✏️'}
+                    </h3>
                     <p className="text-slate-700 dark:text-slate-300 mb-2 sm:mb-3 text-xs sm:text-base font-bold">
                       Answer: <span className="text-amber-600 dark:text-amber-400 font-black uppercase tracking-wider">{game.word}</span>
                     </p>
                     <div className="flex flex-row items-center justify-center gap-2">
-                      <button onClick={() => startNewGame(false)} className="flex-1 sm:flex-initial glass-pill-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap">
+                      <button 
+                        onClick={() => startNewGame(false)} 
+                        className="flex-1 sm:flex-initial glass-pill-dark text-white px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
+                      >
                         <span>🔄</span> <span className="hidden xs:inline">Retry Level</span><span className="xs:hidden">Retry</span> {game.level}
                       </button>
                       <button onClick={() => setShowLossModal(true)} className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
