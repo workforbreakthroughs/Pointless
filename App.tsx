@@ -172,19 +172,12 @@ const App: React.FC = () => {
     if (!activeSyncKey) return;
     const unsub = subscribeToPlayerRecord(activeSyncKey, (record) => {
       if (record) {
-        setGame(prev => {
-          const cloudLevel = record.level || 1;
-          const cloudStreak = record.streak || 0;
-          if (cloudLevel > prev.level || cloudStreak > prev.currentStreak) {
-            return {
-              ...prev,
-              level: Math.max(prev.level, cloudLevel),
-              currentStreak: Math.max(prev.currentStreak, cloudStreak)
-            };
-          }
-          return prev;
-        });
-        setBestLevel(prev => Math.max(prev, record.level || 1));
+        setGame(prev => ({
+          ...prev,
+          level: record.level || 1,
+          currentStreak: record.streak || 0
+        }));
+        setBestLevel(record.level || 1);
         if (record.playerName) setStoredPlayerName(record.playerName);
         if (record.countryCode) setStoredCountryCode(record.countryCode);
       }
@@ -1256,10 +1249,18 @@ const App: React.FC = () => {
           }
           setGame(prev => ({
             ...prev,
-            level: Math.max(prev.level, restoredLevel),
-            currentStreak: Math.max(prev.currentStreak, restoredStreak)
+            level: restoredLevel,
+            currentStreak: restoredStreak
           }));
-          setBestLevel(prev => Math.max(prev, restoredLevel));
+          setBestLevel(restoredLevel);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            currentLevel: restoredLevel,
+            topLevel: restoredLevel,
+            solved: solvedWords,
+            quests: game.quests,
+            currentStreak: restoredStreak,
+            perfectStreak: 0
+          }));
         }}
       />
 
