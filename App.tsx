@@ -977,15 +977,6 @@ const App: React.FC = () => {
           }`}>
             Pointless
           </h1>
-          {isGodMode ? (
-            <span className="bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider animate-pulse shadow-xs">
-              ⚡ God Mode
-            </span>
-          ) : isHellMode ? (
-            <span className="bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 text-[9px] sm:text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wider">
-              Hell Mode
-            </span>
-          ) : null}
           <div className="flex items-center gap-1 sm:gap-1.5">
             <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
