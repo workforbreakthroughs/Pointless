@@ -30,6 +30,13 @@ import { themeService, ResolvedTheme } from './services/themeService';
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
 
+// Allowed player IDs who can unlock God Mode from Hell Mode
+const GOD_MODE_ALLOWED_PLAYERS = [
+  'player_fc153ng_mso0ou81',
+  'player_onybg5w_mspmbzp4',
+  'player_878lpvc_mspsy68a'
+];
+
 const NEWS_HEADLINES = [
   "LOCAL NEWS: Eraser retires after long, rub-heavy career. 'I have no regrets,' he says.",
   "BREAKING: Pencil Sharpener 3000 recalled due to excessive lead-hunger.",
@@ -150,7 +157,7 @@ const App: React.FC = () => {
   const [playerDuelStats, setPlayerDuelStats] = useState<PlayerDuelStats | null>(null);
   const [urlChallengeDuelId, setUrlChallengeDuelId] = useState<string | null>(null);
 
-  // Hell Mode (Secret Mode triggered by double-clicking/tapping "Pointless")
+  // Hell Mode & God Mode (Secret Modes)
   const [isHellMode, setIsHellMode] = useState<boolean>(() => {
     try {
       return localStorage.getItem('pointless_hell_mode') === 'true';
@@ -158,12 +165,47 @@ const App: React.FC = () => {
       return false;
     }
   });
+  const [isGodMode, setIsGodMode] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('pointless_god_mode') === 'true';
+    } catch {
+      return false;
+    }
+  });
+  const [hellLetters, setHellLetters] = useState<string[]>([]);
+  const [isHellError, setIsHellError] = useState(false);
   const tapCountRef = useRef<number>(0);
   const tapTimerRef = useRef<number | null>(null);
+  const pencilTapCountRef = useRef<number>(0);
+  const pencilTapTimerRef = useRef<number | null>(null);
 
   const toggleHellMode = useCallback(() => {
+    // Mode toggling can only happen in the IDLE menu
+    if (game.status !== 'IDLE') {
+      return;
+    }
+
+    // If God Mode is active, double tapping Pointless reverts everything directly to Normal Mode
+    if (isGodMode) {
+      setIsGodMode(false);
+      setIsHellMode(false);
+      setHellLetters([]);
+      setIsHellError(false);
+      try {
+        localStorage.setItem('pointless_god_mode', 'false');
+        localStorage.setItem('pointless_hell_mode', 'false');
+      } catch (e) {
+        console.warn("Storage error", e);
+      }
+      soundService.playCorrect(1);
+      triggerToast("🕊️ NORMAL MODE RESTORED", "You have descended from Olympus. Standard dictionary mode restored.");
+      return;
+    }
+
     setIsHellMode(prev => {
       const next = !prev;
+      setHellLetters([]);
+      setIsHellError(false);
       try {
         localStorage.setItem('pointless_hell_mode', String(next));
       } catch (e) {
@@ -171,18 +213,22 @@ const App: React.FC = () => {
       }
       if (next) {
         soundService.playLoss();
-        triggerToast("🔥 HELL MODE ACTIVATED 😈", "Power-ups disabled. Pure instinct mode!");
+        triggerToast("🔥 HELL MODE ACTIVATED 😈", "Power-ups disabled. Word entered directly into boxes with auto-submit!");
       } else {
         soundService.playCorrect(1);
         triggerToast("🕊️ NORMAL MODE RESTORED", "Standard dictionary mode & power-ups restored.");
       }
       return next;
     });
-  }, []);
+  }, [game.status, isGodMode]);
 
   const handlePointlessTap = useCallback((e?: React.SyntheticEvent) => {
     if (e) {
       e.stopPropagation();
+    }
+    // Only allow mode changes while in menu (IDLE status)
+    if (game.status !== 'IDLE') {
+      return;
     }
     tapCountRef.current += 1;
     if (tapTimerRef.current) {
@@ -198,7 +244,60 @@ const App: React.FC = () => {
         tapTimerRef.current = null;
       }, 450);
     }
-  }, [toggleHellMode]);
+  }, [game.status, toggleHellMode]);
+
+  // Double clicking the bouncing pencil in the menu during Hell Mode for authorized users
+  const handlePencilTap = useCallback((e?: React.SyntheticEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    // Mode toggling can only happen in the IDLE menu
+    if (game.status !== 'IDLE') {
+      return;
+    }
+
+    // Must be in Hell Mode to activate God Mode
+    if (!isHellMode) {
+      return;
+    }
+
+    // Verify authorized user
+    const currentPlayerId = getOrCreatePlayerId();
+    const isAuthorized = GOD_MODE_ALLOWED_PLAYERS.includes(currentPlayerId);
+    if (!isAuthorized) {
+      return;
+    }
+
+    pencilTapCountRef.current += 1;
+    if (pencilTapTimerRef.current) {
+      clearTimeout(pencilTapTimerRef.current);
+    }
+    if (pencilTapCountRef.current >= 2) {
+      pencilTapCountRef.current = 0;
+      pencilTapTimerRef.current = null;
+      setIsGodMode(prev => {
+        const next = !prev;
+        try {
+          localStorage.setItem('pointless_god_mode', String(next));
+        } catch (err) {
+          console.warn("Storage error", err);
+        }
+        if (next) {
+          soundService.playWin();
+          triggerToast("⚡ GOD MODE ASCENDED 👑", "Infinite life & infinite time granted. You are eternal and omniscient!");
+        } else {
+          soundService.playLoss();
+          triggerToast("🔥 RETURNED TO HELL MODE", "God mode revoked. Back to standard Hell Mode.");
+        }
+        return next;
+      });
+    } else {
+      pencilTapTimerRef.current = window.setTimeout(() => {
+        pencilTapCountRef.current = 0;
+        pencilTapTimerRef.current = null;
+      }, 450);
+    }
+  }, [game.status, isHellMode]);
 
   const timerRef = useRef<number | null>(null);
 
@@ -356,6 +455,8 @@ const App: React.FC = () => {
     const nextLevel = isLevelUp ? game.level + 1 : game.level;
     setShowLossModal(true);
     setShowWinModal(true);
+    setHellLetters([]);
+    setIsHellError(false);
     
     setGame(prev => ({ 
       ...prev, 
@@ -389,8 +490,94 @@ const App: React.FC = () => {
     }
   }, [game.level, solvedWords]);
 
+  const handleHellBackspace = useCallback(() => {
+    if (game.status !== 'PLAYING') return;
+    setHellLetters(prev => prev.slice(0, -1));
+  }, [game.status]);
+
   const handleGuess = useCallback((letter: string) => {
-    if (game.status !== 'PLAYING' || game.guessedLetters.includes(letter)) return;
+    if (game.status !== 'PLAYING') return;
+
+    // --- HELL MODE DIRECT WORD ENTRY FLOW ---
+    if (isHellMode) {
+      const targetWord = game.word.toUpperCase();
+      const targetLength = targetWord.length;
+      
+      const newLetters = [...hellLetters, letter];
+      if (newLetters.length < targetLength) {
+        // Continue typing into sequential boxes
+        soundService.playTap();
+        setHellLetters(newLetters);
+        return;
+      }
+
+      // Reached the last letter: Auto-submit full candidate word
+      const candidateWord = newLetters.join('').toUpperCase();
+      if (candidateWord === targetWord) {
+        // Correct Word! Instant Hell Mode Cleared
+        soundService.playWin();
+        const allLetters = targetWord.split('').filter(c => /[A-Z]/.test(c));
+        const newGuessed = Array.from(new Set([...game.guessedLetters, ...allLetters]));
+        
+        let newPerfectStreak = game.perfectStreak;
+        if (game.mistakes === 0) {
+          newPerfectStreak += 1;
+        }
+
+        const updatedSolved = solvedWords.includes(game.word) ? solvedWords : [...solvedWords, game.word];
+        if (!solvedWords.includes(game.word)) setSolvedWords(updatedSolved);
+
+        let questUpdate: Partial<QuestState> = {
+          pureInstinct: true
+        };
+
+        setGame(prev => ({
+          ...prev,
+          status: 'WON',
+          guessedLetters: newGuessed,
+          currentStreak: prev.currentStreak + 1,
+          perfectStreak: newPerfectStreak,
+          quests: { ...prev.quests, ...questUpdate }
+        }));
+        setHellLetters(newLetters);
+        triggerToast("🔥 HELL MODE CONQUERED! 🏆", `Masterful! Solved "${game.word}" with pure instinct!`);
+      } else {
+        // Wrong Word! Flash red, deduct 1 mistake / chance, reset boxes
+        soundService.playWrong();
+        setIsShaking(true);
+        setIsHellError(true);
+        setLastGuessWasWrong(true);
+        setHellLetters(newLetters);
+
+        setTimeout(() => {
+          setIsShaking(false);
+          setIsHellError(false);
+          setLastGuessWasWrong(false);
+          setHellLetters([]);
+        }, 550);
+
+        const newMistakes = isGodMode ? 0 : game.mistakes + 1;
+        let newStatus: GameStatus = 'PLAYING';
+        if (!isGodMode && newMistakes >= game.maxMistakes) {
+          newStatus = 'LOST';
+          soundService.playLoss();
+        }
+
+        setGame(prev => ({
+          ...prev,
+          mistakes: newMistakes,
+          status: newStatus,
+          currentStreak: 0,
+          perfectStreak: 0
+        }));
+
+        triggerToast(isGodMode ? "⚡ GOD MODE: INCORRECT GUESS" : "❌ WRONG WORD! (-1 Chance)", isGodMode ? `"${candidateWord}" is incorrect, but your deity status spares all mistakes!` : `"${candidateWord}" is incorrect!`);
+      }
+      return;
+    }
+
+    // --- STANDARD HANGMAN LETTER GUESS FLOW ---
+    if (game.guessedLetters.includes(letter)) return;
 
     const isCorrect = game.word.includes(letter);
     let newCumulativeStreak = isCorrect ? game.currentStreak + 1 : 0;
@@ -474,7 +661,7 @@ const App: React.FC = () => {
         questUpdate.pureInstinct = true;
         triggerToast("TROPHY: PURE INSTINCT", "Solved a word without using any hints or power-ups!");
       }
-    } else if (newMistakes >= game.maxMistakes) {
+    } else if (!isGodMode && newMistakes >= game.maxMistakes) {
       newStatus = 'LOST';
       soundService.playLoss();
       newCumulativeStreak = 0;
@@ -484,13 +671,13 @@ const App: React.FC = () => {
     setGame(prev => ({
       ...prev,
       guessedLetters: newGuessed,
-      mistakes: newMistakes,
+      mistakes: isGodMode ? 0 : newMistakes,
       status: newStatus,
       currentStreak: newCumulativeStreak,
       perfectStreak: newPerfectStreak,
       quests: { ...prev.quests, ...questUpdate }
     }));
-  }, [game.status, game.guessedLetters, game.word, game.currentStreak, game.quests, game.mistakes, game.perfectStreak, game.initialTime, game.timeLeft, game.level, game.maxMistakes, game.powers, solvedWords]);
+  }, [game.status, game.guessedLetters, game.word, game.currentStreak, game.quests, game.mistakes, game.perfectStreak, game.initialTime, game.timeLeft, game.level, game.maxMistakes, game.powers, isHellMode, isGodMode, hellLetters, solvedWords]);
 
   // Physical keyboard listener for both normal and Hell Mode
   useEffect(() => {
@@ -502,6 +689,12 @@ const App: React.FC = () => {
         return;
       }
 
+      if (isHellMode && (e.key === 'Backspace' || e.key === 'Delete')) {
+        e.preventDefault();
+        handleHellBackspace();
+        return;
+      }
+
       if (/^[a-zA-Z]$/.test(e.key) && !e.ctrlKey && !e.metaKey && !e.altKey) {
         handleGuess(e.key.toUpperCase());
       }
@@ -509,9 +702,15 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [game.status, handleGuess]);
+  }, [game.status, handleGuess, handleHellBackspace, isHellMode]);
 
   useEffect(() => {
+    // In God Mode, there is no timer (infinite time)
+    if (isGodMode) {
+      if (timerRef.current) clearInterval(timerRef.current);
+      return;
+    }
+
     if (game.status === 'PLAYING' && game.timeLeft > 0) {
       timerRef.current = window.setInterval(() => {
         setGame(prev => {
@@ -530,7 +729,7 @@ const App: React.FC = () => {
       if (timerRef.current) clearInterval(timerRef.current);
     }
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, [game.status]);
+  }, [game.status, isGodMode]);
 
   const timerPercentage = (game.timeLeft / game.initialTime) * 100;
 
@@ -767,20 +966,26 @@ const App: React.FC = () => {
         <div 
           onClick={handlePointlessTap}
           className="flex items-center gap-1.5 sm:gap-2.5 cursor-pointer select-none group active:scale-95 transition-transform"
-          title={isHellMode ? "Hell Mode Active (Double-tap to revert to normal)" : "Double-tap for Hell Mode"}
+          title={isGodMode ? "God Mode Active (Double-tap in menu to revert to normal)" : isHellMode ? "Hell Mode Active (Double-tap in menu to revert to normal)" : "Double-tap in menu for Hell Mode"}
         >
           <h1 className={`text-lg sm:text-2xl md:text-3xl font-heading tracking-tight transition-colors duration-200 ${
-            isHellMode 
+            isGodMode
+              ? 'text-sky-500 dark:text-sky-400 font-black drop-shadow-sm'
+              : isHellMode 
               ? 'text-red-500 dark:text-red-400 font-extrabold' 
               : 'text-slate-800 dark:text-white drop-shadow-xs group-hover:text-slate-900 dark:group-hover:text-slate-100'
           }`}>
             Pointless
           </h1>
-          {isHellMode && (
+          {isGodMode ? (
+            <span className="bg-sky-500/15 text-sky-600 dark:text-sky-300 border border-sky-500/30 text-[9px] sm:text-[10px] font-black uppercase px-2 py-0.5 rounded-full tracking-wider animate-pulse shadow-xs">
+              ⚡ God Mode
+            </span>
+          ) : isHellMode ? (
             <span className="bg-red-500/15 text-red-600 dark:text-red-400 border border-red-500/30 text-[9px] sm:text-[10px] font-bold uppercase px-2 py-0.5 rounded-full tracking-wider">
               Hell Mode
             </span>
-          )}
+          ) : null}
           <div className="flex items-center gap-1 sm:gap-1.5">
             <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
@@ -829,21 +1034,32 @@ const App: React.FC = () => {
       <main className={`w-full flex-1 glass-panel rounded-3xl p-2.5 sm:p-4 md:p-5 transition-all flex flex-col justify-between overflow-y-auto max-h-full ${isShaking ? 'animate-shake border-red-300 bg-red-50/50' : ''}`}>
         {game.status === 'IDLE' ? (
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
-            <div className="text-6xl sm:text-8xl mb-1 animate-bounce" style={{ animationDuration: '3s' }}>
+            <div 
+              onClick={handlePencilTap}
+              className="text-6xl sm:text-8xl mb-1 animate-bounce cursor-pointer select-none active:scale-90 transition-transform" 
+              style={{ animationDuration: '3s' }}
+              title={isHellMode ? "Pencil (Double-tap in Hell Mode to unleash God Mode)" : "Graphite"}
+            >
               ✏️
             </div>
-            <h2 className="text-3xl sm:text-5xl font-heading tracking-tight text-slate-900 dark:text-white">
-              {isHellMode ? 'Hell Mode' : 'Help Graphite.'}
+            <h2 className={`text-3xl sm:text-5xl font-heading tracking-tight ${isGodMode ? 'text-sky-500 dark:text-sky-400' : isHellMode ? 'text-red-500 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
+              {isGodMode ? '⚡ God Mode 👑' : isHellMode ? 'Hell Mode' : 'Help Graphite.'}
             </h2>
             
             <div className="glass-card p-5 sm:p-8 rounded-2xl w-full flex flex-col items-center gap-3 relative">
-               {isHellMode && (
+               {isGodMode ? (
+                 <div className="w-full bg-sky-500/10 border border-sky-500/30 rounded-xl p-2.5 text-center text-sky-600 dark:text-sky-300 font-black text-xs uppercase tracking-wider flex items-center justify-center gap-1.5 shadow-xs">
+                   <span>⚡ OMNIPOTENT DEITY • INFINITE LIVES • TIMELESS REALM ⚡</span>
+                 </div>
+               ) : isHellMode ? (
                  <div className="w-full bg-red-500/10 border border-red-500/20 rounded-xl p-2.5 text-center text-red-600 dark:text-red-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
                    <span>Hell Mode • Power-ups Disabled</span>
                  </div>
-               )}
+               ) : null}
                <p className="text-slate-700 dark:text-slate-200 text-base sm:text-xl leading-relaxed italic">
-                 {isHellMode 
+                 {isGodMode
+                   ? '"You are eternal and omniscient. Why would an all-knowing deity need mere mortal clues or pesky clocks? Write upon the universe with boundless lead."'
+                   : isHellMode 
                    ? '"No power-ups or hints. Rely purely on vocabulary instinct."' 
                    : '"Meet Graphite. He\'s a humble HB pencil. Solve the dictionary trivia to keep his lead sharp."'
                  }
@@ -922,7 +1138,9 @@ const App: React.FC = () => {
             <div className="grid grid-cols-1 landscape:grid-cols-[1fr_140px] sm:grid-cols-[1fr_150px] md:grid-cols-[1fr_180px] gap-2 landscape:gap-2 sm:gap-2.5 items-stretch shrink-0">
               <div className="glass-card p-2 sm:p-3.5 landscape:p-2 rounded-2xl flex flex-col items-center justify-center text-center">
                 <span className="inline-flex items-center gap-1 glass-pill-dark text-white px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs font-black uppercase tracking-wider mb-1 shadow-2xs">
-                  {isHellMode ? (
+                  {isGodMode ? (
+                    <span className="text-sky-400 font-black flex items-center gap-1">⚡ GOD MODE</span>
+                  ) : isHellMode ? (
                     <span className="text-red-400 font-extrabold">HELL MODE</span>
                   ) : (
                     <span className="text-yellow-400 font-extrabold">{getTierForLevel(game.level).toUpperCase()}</span>
@@ -931,7 +1149,7 @@ const App: React.FC = () => {
                   <span>{game.category}</span>
                 </span>
                 <h2 className="text-xs sm:text-sm md:text-base font-bold text-slate-800 dark:text-slate-100 italic leading-snug px-2">"{game.clue}"</h2>
-                {game.powers.extraHintUsed && !isHellMode && (
+                {game.powers.extraHintUsed && !isHellMode && !isGodMode && (
                   <div className="mt-1.5 p-1.5 bg-yellow-100/90 dark:bg-yellow-950/70 border border-yellow-300 dark:border-yellow-700/80 rounded-xl text-yellow-950 dark:text-yellow-200 font-bold text-xs animate-in zoom-in shadow-2xs">
                     💡 HINT: {game.extraClue}
                   </div>
@@ -939,7 +1157,7 @@ const App: React.FC = () => {
               </div>
 
               <div className="flex items-center justify-center h-20 sm:h-auto min-h-[75px] max-h-[135px] landscape:h-auto landscape:min-h-[70px] glass-pill rounded-2xl">
-                 <PencilVisual mistakes={game.mistakes} maxMistakes={game.maxMistakes} status={game.status} isWrongGuess={lastGuessWasWrong} />
+                 <PencilVisual mistakes={isGodMode ? 0 : game.mistakes} maxMistakes={game.maxMistakes} status={game.status} isWrongGuess={lastGuessWasWrong} />
               </div>
             </div>
 
@@ -949,17 +1167,34 @@ const App: React.FC = () => {
               {/* Timer Bar */}
               <div className="shrink-0">
                 <div className="w-full h-1.5 sm:h-2.5 bg-slate-200/60 dark:bg-slate-800/60 rounded-full overflow-hidden border border-white/80 dark:border-slate-700/80 p-0.5 glass-pill">
-                  <div className={`h-full rounded-full transition-all duration-1000 ${game.timeLeft < 10 ? 'bg-red-500' : 'bg-slate-800 dark:bg-emerald-500'}`} style={{ width: `${timerPercentage}%` }} />
+                  {isGodMode ? (
+                    <div className="h-full rounded-full bg-sky-400 dark:bg-sky-500 w-full animate-pulse shadow-sm" />
+                  ) : (
+                    <div className={`h-full rounded-full transition-all duration-1000 ${game.timeLeft < 10 ? 'bg-red-500' : 'bg-slate-800 dark:bg-emerald-500'}`} style={{ width: `${timerPercentage}%` }} />
+                  )}
                 </div>
               </div>
 
               {/* Word Letters Display */}
               <div className="my-auto py-0.5 sm:py-1 px-1 flex items-center justify-center overflow-x-auto">
-                <WordDisplay word={game.word} guessedLetters={game.guessedLetters} revealAll={game.status === 'LOST'} />
+                <WordDisplay 
+                  word={game.word} 
+                  guessedLetters={game.guessedLetters} 
+                  revealAll={game.status === 'LOST'} 
+                  isHellMode={isHellMode}
+                  hellLetters={hellLetters}
+                  isHellError={isHellError}
+                />
               </div>
 
               {/* Power-up buttons OR Hell Mode Locked Bar */}
-              {isHellMode ? (
+              {isGodMode ? (
+                <div className="flex justify-center items-center shrink-0 my-0.5 landscape:my-0">
+                  <div className="glass-pill text-sky-600 dark:text-sky-300 border border-sky-400/30 px-3 sm:px-4 py-1 rounded-2xl text-[10px] sm:text-xs font-black uppercase tracking-wider flex items-center gap-1.5 shadow-2xs">
+                    <span>⚡ Timeless & Infinite Lives • Omniscient Mode</span>
+                  </div>
+                </div>
+              ) : isHellMode ? (
                 <div className="flex justify-center items-center shrink-0 my-0.5 landscape:my-0">
                   <div className="glass-pill text-slate-500 dark:text-slate-400 px-3 sm:px-4 py-1 rounded-2xl text-[10px] sm:text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5">
                     <span>Power-ups disabled in Hell Mode</span>
@@ -1028,10 +1263,10 @@ const App: React.FC = () => {
                 {game.status === 'WON' ? (
                   <div className="glass-panel text-slate-900 dark:text-slate-100 rounded-3xl p-3 sm:p-6 landscape:p-2.5 text-center animate-in zoom-in shadow-2xl my-1 sm:my-2 max-w-xl mx-auto border border-white/90 dark:border-slate-700">
                     <span className="text-[10px] sm:text-sm font-black uppercase text-emerald-600 dark:text-emerald-400 tracking-widest block mb-0.5">
-                      {isHellMode ? 'HELL MODE CLEARED' : `LEVEL ${game.level} COMPLETE`}
+                      {isGodMode ? '⚡ GOD MODE TRIUMPH 👑' : isHellMode ? 'HELL MODE CLEARED' : `LEVEL ${game.level} COMPLETE`}
                     </span>
                     <h3 className="text-xl sm:text-3xl font-heading text-slate-900 dark:text-white mb-0.5">
-                      {isHellMode ? 'Solved!' : 'Well Done! 🎉'}
+                      {isGodMode ? 'Omniscient Victory! ⚡' : isHellMode ? 'Solved!' : 'Well Done! 🎉'}
                     </h3>
                     <p className="text-slate-700 dark:text-slate-300 mb-2 sm:mb-3 text-xs sm:text-base font-bold">
                       Answer: <span className="text-emerald-600 dark:text-emerald-400 font-black uppercase tracking-wider">{game.word}</span>
@@ -1069,7 +1304,15 @@ const App: React.FC = () => {
                     </div>
                   </div>
                 ) : (
-                  <Keyboard guessedLetters={game.guessedLetters} removedLetters={game.removedLetters} onGuess={handleGuess} disabled={false} />
+                  <Keyboard 
+                    guessedLetters={game.guessedLetters} 
+                    removedLetters={game.removedLetters} 
+                    onGuess={handleGuess} 
+                    disabled={false} 
+                    isHellMode={isHellMode}
+                    onBackspace={handleHellBackspace}
+                    canBackspace={hellLetters.length > 0}
+                  />
                 )}
               </div>
             </div>

@@ -8,9 +8,22 @@ interface WordDisplayProps {
   revealAll?: boolean;
   isLost?: boolean;
   compact?: boolean;
+  isHellMode?: boolean;
+  hellLetters?: string[];
+  isHellError?: boolean;
 }
 
-const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters, revealAll = false, isLost = false, compact = false }) => {
+const WordDisplay: React.FC<WordDisplayProps> = ({ 
+  word, 
+  phrase, 
+  guessedLetters, 
+  revealAll = false, 
+  isLost = false, 
+  compact = false,
+  isHellMode = false,
+  hellLetters = [],
+  isHellError = false,
+}) => {
   const targetWord = word || phrase || '';
   const shouldRevealAll = revealAll || isLost;
   const wordLength = targetWord.length;
@@ -99,9 +112,41 @@ const WordDisplay: React.FC<WordDisplayProps> = ({ word, phrase, guessedLetters,
   const sizes = getResponsiveClasses();
 
   return (
-    <div className={`flex justify-center items-center ${sizes.container} max-w-full mx-auto px-1 py-1`}>
+    <div className={`flex justify-center items-center ${sizes.container} max-w-full mx-auto px-1 py-1 ${isHellError ? 'animate-shake' : ''}`}>
       {targetWord.split('').map((char, charIndex) => {
         const isLetter = /[A-Z]/.test(char);
+
+        if (isHellMode && !shouldRevealAll) {
+          const typedChar = hellLetters[charIndex] || '';
+          const isFilled = Boolean(typedChar);
+          const isCurrentActiveBox = charIndex === hellLetters.length;
+
+          return (
+            <div
+              key={charIndex}
+              className={`
+                ${sizes.box} flex items-center justify-center 
+                ${sizes.text} font-heading shrink-0 box-border overflow-hidden
+                ${sizes.rounded}
+                ${isHellError 
+                  ? 'bg-red-500/20 border-red-500 text-red-500 shadow-md font-black' 
+                  : isFilled 
+                  ? 'text-slate-900 dark:text-white glass-card border-slate-400 dark:border-slate-500 shadow-md font-black' 
+                  : isCurrentActiveBox 
+                  ? 'text-transparent glass-card border-red-400/80 dark:border-red-500/80 shadow-xs ring-2 ring-red-400/40 animate-pulse' 
+                  : 'text-transparent glass-card border-white/60 dark:border-slate-800/60 shadow-xs'}
+                ${!isLetter ? 'bg-transparent border-transparent text-slate-400 dark:text-slate-500' : ''}
+                transition-all duration-150 transform relative select-none
+              `}
+            >
+              {typedChar}
+              {!isFilled && isLetter && (
+                <div className={`absolute ${sizes.underline} ${isCurrentActiveBox ? 'bg-red-500 dark:bg-red-400' : 'bg-slate-400/60 dark:bg-slate-600/60'} shadow-xs rounded-full`} />
+              )}
+            </div>
+          );
+        }
+
         const isGuessedByPlayer = guessedLetters.includes(char);
         const isRevealed = isGuessedByPlayer || shouldRevealAll || !isLetter;
 
