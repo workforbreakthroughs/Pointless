@@ -1044,7 +1044,7 @@ const App: React.FC = () => {
                  </div>
                ) : isHellMode ? (
                  <div className="w-full bg-red-500/10 border border-red-500/20 rounded-xl p-2.5 text-center text-red-600 dark:text-red-300 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-1.5">
-                   <span>Hell Mode • Power-ups Disabled</span>
+                   <span>No letter reveal • Power-ups disabled</span>
                  </div>
                ) : null}
                <p className="text-slate-700 dark:text-slate-200 text-base sm:text-xl leading-relaxed italic">
