@@ -1092,6 +1092,21 @@ const App: React.FC = () => {
           <div className="flex items-center gap-1 sm:gap-1.5">
             <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
+            {game.status === 'PLAYING' && (
+              <span 
+                className={`glass-pill px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm font-bold flex items-center gap-1 shadow-2xs ${
+                  isGodMode 
+                    ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 border border-sky-500/30' 
+                    : game.timeLeft <= 10 
+                    ? 'text-red-500 dark:text-red-400 font-black animate-pulse bg-red-500/15 border border-red-500/30' 
+                    : 'text-slate-700 dark:text-slate-200'
+                }`}
+                title="Time Remaining"
+              >
+                <span>⏱️</span>
+                <span>{isGodMode ? '∞' : `${game.timeLeft}s`}</span>
+              </span>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
@@ -1267,13 +1282,29 @@ const App: React.FC = () => {
             {/* Bottom Interactive Area */}
             <div className="flex flex-col gap-2 sm:gap-3 landscape:gap-1.5 flex-1 justify-between border-t border-white/60 dark:border-slate-800/80 pt-2 landscape:pt-1.5">
               
-              {/* Timer Bar */}
-              <div className="shrink-0">
-                <div className="w-full h-1.5 sm:h-2.5 bg-slate-200/60 dark:bg-slate-800/60 rounded-full overflow-hidden border border-white/80 dark:border-slate-700/80 p-0.5 glass-pill">
+              {/* Timer Bar & Time Limit Counter */}
+              <div className="shrink-0 flex flex-col gap-1">
+                <div className="flex items-center justify-between text-[10px] sm:text-xs font-bold text-slate-500 dark:text-slate-400 px-1">
+                  <span className="flex items-center gap-1">
+                    <span>⏱️</span>
+                    <span>{isGodMode ? 'Unlimited Time' : 'Time Remaining'}</span>
+                  </span>
+                  {!isGodMode && (
+                    <span className={`font-mono text-[11px] sm:text-xs font-black ${game.timeLeft <= 10 ? 'text-red-500 dark:text-red-400 animate-pulse' : 'text-slate-700 dark:text-slate-300'}`}>
+                      {game.timeLeft}s / {game.initialTime}s
+                    </span>
+                  )}
+                </div>
+                <div className="w-full h-2 sm:h-2.5 bg-slate-200/80 dark:bg-slate-800/80 rounded-full overflow-hidden border border-white/80 dark:border-slate-700/80 p-0.5 glass-pill">
                   {isGodMode ? (
                     <div className="h-full rounded-full bg-sky-400 dark:bg-sky-500 w-full animate-pulse shadow-sm" />
                   ) : (
-                    <div className={`h-full rounded-full transition-all duration-1000 ${game.timeLeft < 10 ? 'bg-red-500' : 'bg-slate-800 dark:bg-emerald-500'}`} style={{ width: `${timerPercentage}%` }} />
+                    <div 
+                      className={`h-full rounded-full transition-all duration-1000 ${
+                        game.timeLeft <= 10 ? 'bg-red-500' : 'bg-slate-800 dark:bg-emerald-500'
+                      }`} 
+                      style={{ width: `${Math.max(0, Math.min(100, timerPercentage))}%` }} 
+                    />
                   )}
                 </div>
               </div>
@@ -1433,23 +1464,23 @@ const App: React.FC = () => {
         {game.status === 'WON' && showWinModal && (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowWinModal(false); }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 landscape:p-1.5 bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto"
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto"
             >
-              <div className="w-full max-w-xl landscape:max-w-3xl glass-panel bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 landscape:p-3 shadow-2xl border border-white/90 dark:border-slate-700 my-auto text-left flex flex-col gap-2 sm:gap-3.5 landscape:gap-2 animate-in zoom-in-95 max-h-[96dvh] landscape:h-[97dvh] landscape:max-h-[97dvh] overflow-hidden relative">
+              <div className="w-full max-w-lg glass-panel bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xl border border-white/90 dark:border-slate-700 my-auto text-left flex flex-col gap-2.5 sm:gap-3 animate-in zoom-in-95 max-h-[90vh] sm:max-h-[85vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/80 pb-2 sm:pb-3 landscape:pb-1.5 shrink-0">
+                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/80 pb-2.5 sm:pb-3 shrink-0">
                   <div className="flex items-center gap-2">
                     <button 
                       onClick={triggerConfettiAnimation}
-                      className="text-2xl sm:text-4xl landscape:text-2xl hover:scale-125 transition-transform cursor-pointer active:scale-90 shrink-0"
+                      className="text-2xl sm:text-3xl hover:scale-125 transition-transform cursor-pointer active:scale-90 shrink-0"
                       title="Click for confetti!"
                       aria-label="Celebrate with confetti"
                     >
                       🎉
                     </button>
                     <div>
-                      <h3 className="text-lg sm:text-3xl landscape:text-xl font-heading text-emerald-600 dark:text-emerald-400 leading-none">Well Done!</h3>
+                      <h3 className="text-lg sm:text-2xl font-heading text-emerald-600 dark:text-emerald-400 leading-none">Well Done!</h3>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-400 mt-0.5 block">Level {game.level} Cleared!</span>
                     </div>
                   </div>
@@ -1468,85 +1499,78 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Scrollable Word Info Body */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col landscape:grid landscape:grid-cols-2 gap-2 sm:gap-3.5 landscape:gap-2.5">
-                  
-                  {/* Column 1 on Landscape: Word & Definition */}
-                  <div className="flex flex-col gap-2 sm:gap-2.5 landscape:gap-2">
-                    {/* Answer Banner */}
-                    <div className="bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/60 rounded-2xl p-2.5 sm:p-4 landscape:p-2.5 text-center shadow-xs shrink-0 relative overflow-hidden">
-                      <span className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-800/80 dark:text-emerald-300/90 block">Correct Word</span>
-                      <div className="flex items-center justify-center gap-2 mt-0.5">
-                        <span className="text-emerald-600 dark:text-emerald-400 font-black text-lg sm:text-4xl landscape:text-2xl uppercase tracking-widest">{game.word}</span>
-                        {modalPhonetic && (
-                          <span className="text-slate-500 dark:text-slate-300 font-serif italic text-xs sm:text-sm bg-emerald-100/80 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-700/60">{modalPhonetic}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* DEFINITION */}
-                    <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
-                      </div>
-                      <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 italic leading-snug">"{modalDefinition}"</p>
-
-                      {/* OTHER MEANINGS & DEFINITIONS */}
-                      {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
-                          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
-                            <span>📚</span> OTHER MEANINGS
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
-                              <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-medium flex items-start gap-1.5 bg-white/60 dark:bg-slate-900/60 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-                                {defItem.partOfSpeech && (
-                                  <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md shrink-0 mt-0.5">
-                                    {defItem.partOfSpeech}
-                                  </span>
-                                )}
-                                <span className="italic leading-snug">"{defItem.definition}"</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                {/* Scrollable Word Info Body (Clean Single Column) */}
+                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-2.5 sm:gap-3">
+                  {/* Answer Banner */}
+                  <div className="bg-emerald-50/90 dark:bg-emerald-950/40 border border-emerald-200/90 dark:border-emerald-800/60 rounded-2xl p-2.5 sm:p-3.5 text-center shadow-xs shrink-0 relative overflow-hidden">
+                    <span className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-widest text-emerald-800/80 dark:text-emerald-300/90 block">Correct Word</span>
+                    <div className="flex items-center justify-center gap-2 mt-0.5">
+                      <span className="text-emerald-600 dark:text-emerald-400 font-black text-xl sm:text-3xl uppercase tracking-widest">{game.word}</span>
+                      {modalPhonetic && (
+                        <span className="text-slate-500 dark:text-slate-300 font-serif italic text-xs sm:text-sm bg-emerald-100/80 dark:bg-emerald-900/60 px-2 py-0.5 rounded-md border border-emerald-200/60 dark:border-emerald-700/60">{modalPhonetic}</span>
                       )}
                     </div>
                   </div>
 
-                  {/* Column 2 on Landscape: Origin & Fun Fact */}
-                  <div className="flex flex-col gap-2 sm:gap-2.5 landscape:gap-2">
-                    {/* ORIGIN / ETYMOLOGY */}
-                    <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
-                        <span className="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{modalSource}</span>
-                      </div>
-                      <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">{modalOrigin}</p>
+                  {/* DEFINITION */}
+                  <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                     </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 italic leading-snug">"{modalDefinition}"</p>
 
-                    {/* FUN FACT */}
-                    <div className="bg-emerald-100/70 dark:bg-emerald-950/40 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
-                        <span>💡</span> FUN FACT
+                    {/* OTHER MEANINGS & DEFINITIONS */}
+                    {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
+                        <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
+                          <span>📚</span> OTHER MEANINGS
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
+                            <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-medium flex items-start gap-1.5 bg-white/60 dark:bg-slate-900/60 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                              {defItem.partOfSpeech && (
+                                <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md shrink-0 mt-0.5">
+                                  {defItem.partOfSpeech}
+                                </span>
+                              )}
+                              <span className="italic leading-snug">"{defItem.definition}"</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-emerald-950 dark:text-emerald-200 leading-relaxed">{modalFunFact}</p>
+                    )}
+                  </div>
+
+                  {/* ORIGIN / ETYMOLOGY */}
+                  <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
+                      <span className="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{modalSource}</span>
                     </div>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">{modalOrigin}</p>
+                  </div>
+
+                  {/* FUN FACT */}
+                  <div className="bg-emerald-100/70 dark:bg-emerald-950/40 p-2.5 sm:p-3.5 rounded-2xl border border-emerald-200/90 dark:border-emerald-800/60 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 mb-1 flex items-center gap-1.5">
+                      <span>💡</span> FUN FACT
+                    </div>
+                    <p className="text-xs sm:text-sm font-semibold text-emerald-950 dark:text-emerald-200 leading-relaxed">{modalFunFact}</p>
                   </div>
                 </div>
 
                 {/* Navigation & Action Buttons */}
-                <div className="flex flex-row items-center justify-between gap-2 mt-auto pt-2 sm:pt-3 landscape:pt-2 border-t border-slate-200/80 dark:border-slate-700/80 w-full shrink-0">
+                <div className="flex flex-row items-center justify-between gap-2 mt-auto pt-2.5 sm:pt-3 border-t border-slate-200/80 dark:border-slate-700/80 w-full shrink-0">
                   <button 
                     onClick={() => startNewGame(true)} 
-                    className="flex-1 glass-pill-dark text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
+                    className="flex-1 glass-pill-dark text-white px-3.5 sm:px-5 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
                   >
                     <span>🚀</span> <span className="hidden xs:inline">Next Level</span><span className="xs:hidden">Next</span> ({game.level + 1})
                   </button>
                   
                   <button 
                     onClick={() => setShowWinModal(false)} 
-                    className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
+                    className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
                     title="Close modal to review board"
                   >
                     <span>👁️</span> Board
@@ -1561,16 +1585,16 @@ const App: React.FC = () => {
         {game.status === 'LOST' && showLossModal && (
             <div 
               onClick={(e) => { if (e.target === e.currentTarget) setShowLossModal(false); }}
-              className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-6 landscape:p-1.5 bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto"
+              className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/50 backdrop-blur-sm animate-in fade-in duration-300 overflow-y-auto"
             >
-              <div className="w-full max-w-xl landscape:max-w-3xl glass-panel bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white rounded-2xl sm:rounded-3xl p-3 sm:p-6 landscape:p-3 shadow-2xl border border-white/90 dark:border-slate-700 my-auto text-left flex flex-col gap-2 sm:gap-3.5 landscape:gap-2 animate-in zoom-in-95 max-h-[96dvh] landscape:h-[97dvh] landscape:max-h-[97dvh] overflow-hidden relative">
+              <div className="w-full max-w-lg glass-panel bg-white/95 dark:bg-slate-900/95 backdrop-blur-md text-slate-900 dark:text-white rounded-2xl sm:rounded-3xl p-3.5 sm:p-5 shadow-2xl border border-white/90 dark:border-slate-700 my-auto text-left flex flex-col gap-2.5 sm:gap-3 animate-in zoom-in-95 max-h-[90vh] sm:max-h-[85vh] overflow-hidden relative">
                 
                 {/* Modal Header */}
-                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/80 pb-2 sm:pb-3 landscape:pb-1.5 shrink-0">
+                <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/80 pb-2.5 sm:pb-3 shrink-0">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl sm:text-4xl landscape:text-2xl shrink-0">✏️</span>
+                    <span className="text-2xl sm:text-3xl shrink-0">✏️</span>
                     <div>
-                      <h3 className="text-lg sm:text-3xl landscape:text-xl font-heading text-red-500 dark:text-red-400 leading-none">Snapped!</h3>
+                      <h3 className="text-lg sm:text-2xl font-heading text-red-500 dark:text-red-400 leading-none">Snapped!</h3>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-400 mt-0.5 block">Level {game.level} Unsuccessful</span>
                     </div>
                   </div>
@@ -1589,85 +1613,78 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Scrollable Word Info Body */}
-                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col landscape:grid landscape:grid-cols-2 gap-2 sm:gap-3.5 landscape:gap-2.5">
-                  
-                  {/* Column 1 on Landscape: Word & Definition */}
-                  <div className="flex flex-col gap-2 sm:gap-2.5 landscape:gap-2">
-                    {/* Answer Banner */}
-                    <div className="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl p-2.5 sm:p-4 landscape:p-2.5 text-center shadow-xs shrink-0 relative overflow-hidden">
-                      <span className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 dark:text-amber-300/90 block">Answer Word</span>
-                      <div className="flex items-center justify-center gap-2 mt-0.5">
-                        <span className="text-amber-600 dark:text-amber-400 font-black text-lg sm:text-4xl landscape:text-2xl uppercase tracking-widest">{game.word}</span>
-                        {modalPhonetic && (
-                          <span className="text-slate-500 dark:text-slate-300 font-serif italic text-xs sm:text-sm bg-amber-100/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-700/60">{modalPhonetic}</span>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* DEFINITION */}
-                    <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
-                      </div>
-                      <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 italic leading-snug">"{modalDefinition}"</p>
-
-                      {/* OTHER MEANINGS & DEFINITIONS */}
-                      {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
-                        <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
-                          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
-                            <span>📚</span> OTHER MEANINGS
-                          </div>
-                          <div className="flex flex-col gap-1.5">
-                            {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
-                              <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-medium flex items-start gap-1.5 bg-white/60 dark:bg-slate-900/60 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
-                                {defItem.partOfSpeech && (
-                                  <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md shrink-0 mt-0.5">
-                                    {defItem.partOfSpeech}
-                                  </span>
-                                )}
-                                <span className="italic leading-snug">"{defItem.definition}"</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
+                {/* Scrollable Word Info Body (Clean Single Column) */}
+                <div className="flex-1 overflow-y-auto min-h-0 pr-1 flex flex-col gap-2.5 sm:gap-3">
+                  {/* Answer Banner */}
+                  <div className="bg-amber-50/90 dark:bg-amber-950/40 border border-amber-200/90 dark:border-amber-800/60 rounded-2xl p-2.5 sm:p-3.5 text-center shadow-xs shrink-0 relative overflow-hidden">
+                    <span className="text-[9px] sm:text-[11px] font-extrabold uppercase tracking-widest text-amber-800/80 dark:text-amber-300/90 block">Answer Word</span>
+                    <div className="flex items-center justify-center gap-2 mt-0.5">
+                      <span className="text-amber-600 dark:text-amber-400 font-black text-xl sm:text-3xl uppercase tracking-widest">{game.word}</span>
+                      {modalPhonetic && (
+                        <span className="text-slate-500 dark:text-slate-300 font-serif italic text-xs sm:text-sm bg-amber-100/80 dark:bg-amber-900/60 px-2 py-0.5 rounded-md border border-amber-200/60 dark:border-amber-700/60">{modalPhonetic}</span>
                       )}
                     </div>
                   </div>
 
-                  {/* Column 2 on Landscape: Origin & Fun Fact */}
-                  <div className="flex flex-col gap-2 sm:gap-2.5 landscape:gap-2">
-                    {/* ORIGIN / ETYMOLOGY */}
-                    <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
-                        <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
-                        <span className="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{modalSource}</span>
-                      </div>
-                      <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">{modalOrigin}</p>
+                  {/* DEFINITION */}
+                  <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>📖</span> GAME DEFINITION</span>
                     </div>
+                    <p className="text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-100 italic leading-snug">"{modalDefinition}"</p>
 
-                    {/* FUN FACT */}
-                    <div className="bg-amber-100/70 dark:bg-amber-950/40 p-2.5 sm:p-3.5 landscape:p-2.5 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-2xs">
-                      <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
-                        <span>💡</span> FUN FACT
+                    {/* OTHER MEANINGS & DEFINITIONS */}
+                    {etymologyInfo?.otherDefinitions && etymologyInfo.otherDefinitions.length > 0 && (
+                      <div className="mt-2 pt-2 border-t border-slate-200/80 dark:border-slate-700/80">
+                        <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center gap-1.5">
+                          <span>📚</span> OTHER MEANINGS
+                        </div>
+                        <div className="flex flex-col gap-1.5">
+                          {etymologyInfo.otherDefinitions.slice(0, 2).map((defItem, idx) => (
+                            <div key={idx} className="text-xs text-slate-700 dark:text-slate-300 font-medium flex items-start gap-1.5 bg-white/60 dark:bg-slate-900/60 p-1.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                              {defItem.partOfSpeech && (
+                                <span className="text-[8px] font-extrabold uppercase px-1.5 py-0.5 bg-slate-200/90 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-md shrink-0 mt-0.5">
+                                  {defItem.partOfSpeech}
+                                </span>
+                              )}
+                              <span className="italic leading-snug">"{defItem.definition}"</span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                      <p className="text-xs sm:text-sm font-semibold text-amber-950 dark:text-amber-200 leading-relaxed">{modalFunFact}</p>
+                    )}
+                  </div>
+
+                  {/* ORIGIN / ETYMOLOGY */}
+                  <div className="bg-slate-100/90 dark:bg-slate-800/80 p-2.5 sm:p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-1 flex items-center justify-between">
+                      <span className="flex items-center gap-1.5"><span>🏛️</span> ORIGIN & ETYMOLOGY</span>
+                      <span className="text-[8px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-widest">{modalSource}</span>
                     </div>
+                    <p className="text-xs sm:text-sm font-semibold text-slate-700 dark:text-slate-300 leading-relaxed">{modalOrigin}</p>
+                  </div>
+
+                  {/* FUN FACT */}
+                  <div className="bg-amber-100/70 dark:bg-amber-950/40 p-2.5 sm:p-3.5 rounded-2xl border border-amber-200/90 dark:border-amber-800/60 shadow-2xs">
+                    <div className="text-[9px] sm:text-[11px] font-black uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1 flex items-center gap-1.5">
+                      <span>💡</span> FUN FACT
+                    </div>
+                    <p className="text-xs sm:text-sm font-semibold text-amber-950 dark:text-amber-200 leading-relaxed">{modalFunFact}</p>
                   </div>
                 </div>
 
                 {/* Navigation & Action Buttons */}
-                <div className="flex flex-row items-center justify-between gap-2 mt-auto pt-2 sm:pt-3 landscape:pt-2 border-t border-slate-200/80 dark:border-slate-700/80 w-full shrink-0">
+                <div className="flex flex-row items-center justify-between gap-2 mt-auto pt-2.5 sm:pt-3 border-t border-slate-200/80 dark:border-slate-700/80 w-full shrink-0">
                   <button 
                     onClick={() => startNewGame(false)} 
-                    className="flex-1 glass-pill-dark text-white px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
+                    className="flex-1 glass-pill-dark text-white px-3.5 sm:px-5 py-2.5 rounded-2xl font-heading text-xs sm:text-sm shadow-xl btn-press flex items-center justify-center gap-1.5 hover:bg-slate-800 dark:hover:bg-slate-700 transition-all whitespace-nowrap"
                   >
                     <span>🔄</span> <span className="hidden xs:inline">Retry Level</span><span className="xs:hidden">Retry</span> {game.level}
                   </button>
                   
                   <button 
                     onClick={() => setShowLossModal(false)} 
-                    className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
+                    className="shrink-0 glass-button text-slate-800 dark:text-slate-200 px-3.5 sm:px-5 py-2.5 rounded-2xl font-bold text-xs sm:text-sm uppercase tracking-wider shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap"
                     title="Close modal to review board"
                   >
                     <span>👁️</span> Board
