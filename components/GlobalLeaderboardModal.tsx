@@ -30,7 +30,9 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
   onProgressRestored,
 }) => {
   const [leaderboard, setLeaderboard] = useState<GlobalScoreRecord[]>([]);
+  const [displayLimit, setDisplayLimit] = useState(10);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [playerName, setPlayerName] = useState(getStoredPlayerName());
   const [countryCode, setCountryCode] = useState(getStoredCountryCode());
   const [isEditingProfile, setIsEditingProfile] = useState(false);
@@ -49,17 +51,28 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
   const localPlayerId = getOrCreatePlayerId();
 
   useEffect(() => {
-    if (!isOpen) return;
+    if (!isOpen) {
+      setDisplayLimit(10);
+      return;
+    }
 
     setSyncKey(getUserSyncKey());
-    setIsLoading(true);
+    if (displayLimit === 10) {
+      setIsLoading(true);
+    }
     const unsubscribe = subscribeToTopLeaderboard((records) => {
       setLeaderboard(records);
       setIsLoading(false);
-    }, 10);
+      setIsLoadingMore(false);
+    }, displayLimit);
 
     return () => unsubscribe();
-  }, [isOpen]);
+  }, [isOpen, displayLimit]);
+
+  const handleLoadMore = () => {
+    setIsLoadingMore(true);
+    setDisplayLimit(prev => prev + 10);
+  };
 
   if (!isOpen) return null;
 
@@ -391,6 +404,32 @@ export const GlobalLeaderboardModal: React.FC<GlobalLeaderboardModalProps> = ({
                   </div>
                 );
               })
+            )}
+            {leaderboard.length > 0 && (
+              <div className="pt-2 flex flex-col items-center gap-1.5 shrink-0">
+                {leaderboard.length >= displayLimit ? (
+                  <button
+                    onClick={handleLoadMore}
+                    disabled={isLoadingMore}
+                    className="w-full py-2 px-4 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700/80 transition-all btn-press flex items-center justify-center gap-1.5 shadow-2xs disabled:opacity-60 cursor-pointer"
+                  >
+                    {isLoadingMore ? (
+                      <>
+                        <span className="w-3.5 h-3.5 border-2 border-slate-400 border-t-amber-500 rounded-full animate-spin"></span>
+                        <span>Loading ranked players...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>⬇️ Load More (Rank {displayLimit + 1}+)</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  <div className="text-[10px] sm:text-xs font-semibold text-slate-400 dark:text-slate-500 py-1 text-center">
+                    ✨ Showing all {leaderboard.length} ranked global {leaderboard.length === 1 ? 'player' : 'players'}
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
