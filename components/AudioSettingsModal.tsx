@@ -57,7 +57,6 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
             <span className="text-2xl sm:text-3xl">🎧</span>
             <div>
               <h3 className="font-heading text-lg sm:text-xl text-slate-900 dark:text-white leading-tight">Audio & Soundtrack</h3>
-              <p className="text-[11px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">100% Royalty-Free & Copyright-Free</p>
             </div>
           </div>
           <button 
@@ -70,14 +69,6 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
           >
             ✕
           </button>
-        </div>
-
-        {/* Royalty Free Badge */}
-        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 rounded-2xl p-2.5 flex items-center gap-2.5 text-xs text-emerald-900 dark:text-emerald-200">
-          <span className="text-xl shrink-0">✨</span>
-          <p className="leading-snug font-medium">
-            <strong className="font-bold">Real-time Web Audio:</strong> All music and sound effects are procedurally generated in code. No external sample downloads, safe for streaming & sharing!
-          </p>
         </div>
 
         {/* Sound Effects (SFX) Section */}
@@ -279,17 +270,6 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
             </button>
           </div>
         </div>
-
-        {/* Done Button */}
-        <button
-          onClick={() => {
-            soundService.playPop();
-            onClose();
-          }}
-          className="w-full glass-pill-dark text-white py-2.5 rounded-2xl font-bold uppercase tracking-wider hover:bg-black transition-colors text-xs sm:text-sm shadow-md"
-        >
-          Save & Return
-        </button>
       </div>
     </div>
   );
