@@ -357,6 +357,115 @@ const App: React.FC = () => {
     }
   }, [game.level, game.currentStreak]);
 
+  // Android back gesture & browser history management for all modals
+  const isClosingViaPopstateRef = useRef<boolean>(false);
+  const prevModalsRef = useRef({
+    isAudioSettingsOpen: false,
+    isQuestModalOpen: false,
+    isLeaderboardOpen: false,
+    isDuelHubOpen: false,
+    hasCompletedDuel: false,
+    hasActiveDuel: false,
+    showWinModal: false,
+    showLossModal: false,
+  });
+
+  // Listen to popstate (e.g. Android back gesture, system back button, edge swipe back)
+  useEffect(() => {
+    const handlePopState = () => {
+      isClosingViaPopstateRef.current = true;
+
+      // Close topmost open modal or return from active duel
+      if (isAudioSettingsOpen) {
+        setIsAudioSettingsOpen(false);
+      } else if (isQuestModalOpen) {
+        setIsQuestModalOpen(false);
+      } else if (isLeaderboardOpen) {
+        setIsLeaderboardOpen(false);
+      } else if (isDuelHubOpen) {
+        setIsDuelHubOpen(false);
+      } else if (completedDuel) {
+        setCompletedDuel(null);
+      } else if (activeDuel) {
+        setActiveDuel(null);
+      } else if (game.status === 'WON' && showWinModal) {
+        setShowWinModal(false);
+      } else if (game.status === 'LOST' && showLossModal) {
+        setShowLossModal(false);
+      }
+
+      setTimeout(() => {
+        isClosingViaPopstateRef.current = false;
+      }, 150);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [
+    isAudioSettingsOpen,
+    isQuestModalOpen,
+    isLeaderboardOpen,
+    isDuelHubOpen,
+    completedDuel,
+    activeDuel,
+    game.status,
+    showWinModal,
+    showLossModal,
+  ]);
+
+  // Synchronize history.pushState when a modal opens and history.back when closed via UI button
+  useEffect(() => {
+    const prev = prevModalsRef.current;
+    const current = {
+      isAudioSettingsOpen,
+      isQuestModalOpen,
+      isLeaderboardOpen,
+      isDuelHubOpen,
+      hasCompletedDuel: Boolean(completedDuel),
+      hasActiveDuel: Boolean(activeDuel),
+      showWinModal: game.status === 'WON' && showWinModal,
+      showLossModal: game.status === 'LOST' && showLossModal,
+    };
+
+    const openedAny = (
+      (!prev.isAudioSettingsOpen && current.isAudioSettingsOpen) ||
+      (!prev.isQuestModalOpen && current.isQuestModalOpen) ||
+      (!prev.isLeaderboardOpen && current.isLeaderboardOpen) ||
+      (!prev.isDuelHubOpen && current.isDuelHubOpen) ||
+      (!prev.hasCompletedDuel && current.hasCompletedDuel) ||
+      (!prev.hasActiveDuel && current.hasActiveDuel) ||
+      (!prev.showWinModal && current.showWinModal) ||
+      (!prev.showLossModal && current.showLossModal)
+    );
+
+    if (openedAny) {
+      window.history.pushState({ modalOpen: true }, '');
+    }
+
+    const wasAnyOpen = Object.values(prev).some(Boolean);
+    const isAnyOpenNow = Object.values(current).some(Boolean);
+
+    if (wasAnyOpen && !isAnyOpenNow) {
+      if (!isClosingViaPopstateRef.current) {
+        if (window.history.state?.modalOpen) {
+          window.history.back();
+        }
+      }
+    }
+
+    prevModalsRef.current = current;
+  }, [
+    isAudioSettingsOpen,
+    isQuestModalOpen,
+    isLeaderboardOpen,
+    isDuelHubOpen,
+    completedDuel,
+    activeDuel,
+    game.status,
+    showWinModal,
+    showLossModal,
+  ]);
+
   // Confetti helper for victory celebration
   const triggerConfettiAnimation = useCallback(() => {
     // Left burst
@@ -751,7 +860,10 @@ const App: React.FC = () => {
       )}
 
       {isQuestModalOpen && (
-        <div className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-200">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsQuestModalOpen(false); }}
+          className="fixed inset-0 z-[110] flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-200"
+        >
           <div className="glass-panel w-full max-w-lg rounded-3xl shadow-2xl p-4 sm:p-7 border border-white/80 dark:border-slate-700 relative h-[520px] sm:h-[580px] max-h-[88vh] flex flex-col">
              <button onClick={() => setIsQuestModalOpen(false)} className="absolute top-3 right-3 text-slate-400 dark:text-slate-400 hover:text-slate-800 dark:hover:text-white transition-colors text-xl font-black p-2 rounded-full hover:bg-white/50 dark:hover:bg-slate-800/50">✕</button>
              

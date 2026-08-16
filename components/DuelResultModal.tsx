@@ -34,8 +34,18 @@ const DuelResultModal: React.FC<DuelResultModalProps> = ({
   const decisive = duel.decisiveWord;
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white border-2 border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onReturnToGame();
+        }
+      }}
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white border-2 border-slate-800 rounded-3xl shadow-2xl w-full max-w-lg flex flex-col overflow-hidden my-auto animate-in zoom-in-95 duration-200"
+      >
         
         {/* Banner Header */}
         <div className={`p-6 text-center border-b-2 border-slate-800 text-white relative overflow-hidden ${

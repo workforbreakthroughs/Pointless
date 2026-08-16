@@ -38,7 +38,15 @@ export const AudioSettingsModal: React.FC<AudioSettingsModalProps> = ({ isOpen, 
   ];
 
   return (
-    <div className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          soundService.playPop();
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 bg-slate-950/40 backdrop-blur-xl animate-in fade-in duration-200"
+    >
       <div 
         onClick={(e) => e.stopPropagation()} 
         className="glass-panel w-full max-w-md rounded-3xl shadow-2xl p-4 sm:p-6 border border-white/90 relative flex flex-col gap-4 animate-in zoom-in-95 max-h-[90vh] overflow-y-auto"

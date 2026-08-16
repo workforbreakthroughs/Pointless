@@ -130,8 +130,18 @@ const DuelHubModal: React.FC<DuelHubModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-      <div className="bg-white dark:bg-slate-900 border-2 border-slate-800 dark:border-slate-700 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden my-auto max-h-[90vh] animate-in zoom-in-95 duration-200">
+    <div 
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-3 sm:p-4 overflow-y-auto"
+    >
+      <div 
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-slate-900 border-2 border-slate-800 dark:border-slate-700 rounded-3xl shadow-2xl w-full max-w-xl flex flex-col overflow-hidden my-auto max-h-[90vh] animate-in zoom-in-95 duration-200"
+      >
         
         {/* Header */}
         <div className="bg-slate-900 dark:bg-slate-950 text-white p-4 border-b-2 border-slate-800 dark:border-slate-700 flex items-center justify-between shrink-0">
