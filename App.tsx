@@ -1092,21 +1092,6 @@ const App: React.FC = () => {
           <div className="flex items-center gap-1 sm:gap-1.5">
             <span className="glass-pill-dark text-white text-[10px] sm:text-xs md:text-sm px-2 sm:px-2.5 py-0.5 rounded-full font-bold uppercase tracking-wider shadow-sm">LV {game.level}</span>
             {game.currentStreak > 0 && <span className="text-orange-500 font-black text-[10px] sm:text-xs md:text-sm animate-pulse glass-pill px-2 sm:px-2.5 py-0.5 rounded-full">🔥 {game.currentStreak}</span>}
-            {game.status === 'PLAYING' && (
-              <span 
-                className={`glass-pill px-2 sm:px-2.5 py-0.5 rounded-full text-[10px] sm:text-xs md:text-sm font-bold flex items-center gap-1 shadow-2xs ${
-                  isGodMode 
-                    ? 'text-sky-500 dark:text-sky-400 bg-sky-500/10 border border-sky-500/30' 
-                    : game.timeLeft <= 10 
-                    ? 'text-red-500 dark:text-red-400 font-black animate-pulse bg-red-500/15 border border-red-500/30' 
-                    : 'text-slate-700 dark:text-slate-200'
-                }`}
-                title="Time Remaining"
-              >
-                <span>⏱️</span>
-                <span>{isGodMode ? '∞' : `${game.timeLeft}s`}</span>
-              </span>
-            )}
           </div>
         </div>
         <div className="flex items-center gap-1 sm:gap-1.5">
