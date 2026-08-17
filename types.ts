@@ -26,6 +26,17 @@ export interface QuestState {
   pureInstinct: boolean;    // Win a game without using any power-ups
 }
 
+export interface PlayedWordRecord {
+  word: string;
+  category: string;
+  clue: string;
+  extraClue?: string;
+  status: 'WON' | 'LOST';
+  level: number;
+  timestamp: number;
+  favorite?: boolean;
+}
+
 export interface GameState {
   status: GameStatus;
   word: string;

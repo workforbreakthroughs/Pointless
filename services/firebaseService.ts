@@ -46,6 +46,15 @@ export interface GlobalScoreRecord {
   level: number;
   streak: number;
   updatedAt: string;
+  journal?: Array<{
+    w: string;
+    c: string;
+    d: string;
+    s: 1 | 0;
+    l: number;
+    t: number;
+    f?: 1;
+  }>;
 }
 
 const GLOBAL_SCORES_COLLECTION = 'global_scores';
@@ -202,7 +211,8 @@ export function subscribeToPlayerRecord(
         countryCode: data.countryCode || 'US',
         level: Math.max(1, Number(data.level) || 1),
         streak: Math.max(0, Number(data.streak) || 0),
-        updatedAt: data.updatedAt || ''
+        updatedAt: data.updatedAt || '',
+        journal: Array.isArray(data.journal) ? data.journal : undefined
       });
     } else {
       callback(null);
@@ -244,7 +254,8 @@ export async function restorePlayerProgressWithKey(syncKey: string): Promise<{
       countryCode: data.countryCode || 'US',
       level: Math.max(1, Number(data.level) || 1),
       streak: Math.max(0, Number(data.streak) || 0),
-      updatedAt: data.updatedAt || ''
+      updatedAt: data.updatedAt || '',
+      journal: Array.isArray(data.journal) ? data.journal : undefined
     };
 
     // Update local browser identity and data to this restored sync key
@@ -332,7 +343,16 @@ export async function updatePlayerGlobalScore(
   level: number, 
   streak: number = 0, 
   playerName?: string,
-  countryCode?: string
+  countryCode?: string,
+  journal?: Array<{
+    w: string;
+    c: string;
+    d: string;
+    s: 1 | 0;
+    l: number;
+    t: number;
+    f?: 1;
+  }>
 ): Promise<boolean> {
   try {
     const playerId = getOrCreatePlayerId();
@@ -340,29 +360,32 @@ export async function updatePlayerGlobalScore(
     const finalCountry = countryCode || getStoredCountryCode();
     const docRef = doc(db, GLOBAL_SCORES_COLLECTION, playerId);
 
+    const updatePayload: Record<string, any> = {
+      playerName: finalName,
+      countryCode: finalCountry,
+      updatedAt: new Date().toISOString()
+    };
+
+    if (journal && Array.isArray(journal)) {
+      updatePayload.journal = journal;
+      updatePayload.playedWordsCount = journal.length;
+    }
+
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const existingLevel = Number(docSnap.data().level) || 0;
       // Update if current level is higher or equal (to update handle/country)
-      if (level >= existingLevel) {
-        await setDoc(docRef, {
-          playerName: finalName,
-          countryCode: finalCountry,
-          level: Math.max(level, existingLevel),
-          streak: Math.max(streak, Number(docSnap.data().streak) || 0),
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
-        return true;
-      }
+      updatePayload.level = Math.max(level, existingLevel);
+      updatePayload.streak = Math.max(streak, Number(docSnap.data().streak) || 0);
+
+      await setDoc(docRef, updatePayload, { merge: true });
+      return true;
     } else {
       // First submission
-      await setDoc(docRef, {
-        playerName: finalName,
-        countryCode: finalCountry,
-        level: Math.max(1, level),
-        streak: Math.max(0, streak),
-        updatedAt: new Date().toISOString()
-      });
+      updatePayload.level = Math.max(1, level);
+      updatePayload.streak = Math.max(0, streak);
+
+      await setDoc(docRef, updatePayload);
       return true;
     }
   } catch (err) {

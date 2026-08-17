@@ -1,7 +1,7 @@
 
 import React, { useState, useCallback, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
-import { GameState, GameStatus, QuestState } from './types';
+import { GameState, GameStatus, QuestState, PlayedWordRecord } from './types';
 import { fetchNewWord } from './services/geminiService';
 import { getTierForLevel } from './services/wordNetService';
 import { fetchEtymologyDetails, EtymologyDetails } from './services/etymologyService';
@@ -19,6 +19,14 @@ import {
   setStoredPlayerName,
   setStoredCountryCode 
 } from './services/firebaseService';
+import { 
+  getStoredPlayedWords, 
+  recordPlayedWord, 
+  toggleFavoriteWord, 
+  mergeCloudJournal, 
+  toCompactJournal 
+} from './services/journalService';
+import { JournalCodexView } from './components/JournalCodexView';
 import DuelHubModal from './components/DuelHubModal';
 import DuelGameScreen from './components/DuelGameScreen';
 import DuelResultModal from './components/DuelResultModal';
@@ -138,11 +146,12 @@ const App: React.FC = () => {
 
   const [bestLevel, setBestLevel] = useState(1);
   const [solvedWords, setSolvedWords] = useState<string[]>([]);
+  const [journalWords, setJournalWords] = useState<PlayedWordRecord[]>(() => getStoredPlayedWords());
   const [isShaking, setIsShaking] = useState(false);
   const [lastGuessWasWrong, setLastGuessWasWrong] = useState(false);
   const [showToast, setShowToast] = useState<{title: string, msg: string} | null>(null);
   const [isQuestModalOpen, setIsQuestModalOpen] = useState(false);
-  const [journalTab, setJournalTab] = useState<'powers' | 'trophies'>('powers');
+  const [journalTab, setJournalTab] = useState<'words' | 'powers' | 'trophies'>('words');
   const [showLossModal, setShowLossModal] = useState(true);
   const [showWinModal, setShowWinModal] = useState(true);
   const [etymologyInfo, setEtymologyInfo] = useState<EtymologyDetails | null>(null);
@@ -345,6 +354,10 @@ const App: React.FC = () => {
         setBestLevel(record.level || 1);
         if (record.playerName) setStoredPlayerName(record.playerName);
         if (record.countryCode) setStoredCountryCode(record.countryCode);
+        if (record.journal && Array.isArray(record.journal)) {
+          const merged = mergeCloudJournal(record.journal);
+          setJournalWords(merged);
+        }
       }
     });
     return () => unsub();
@@ -353,9 +366,57 @@ const App: React.FC = () => {
   // Update global player level on Firestore whenever level or streak changes
   useEffect(() => {
     if (game.level >= 1) {
-      updatePlayerGlobalScore(game.level, game.currentStreak);
+      updatePlayerGlobalScore(
+        game.level, 
+        game.currentStreak, 
+        undefined, 
+        undefined, 
+        toCompactJournal(journalWords)
+      );
     }
   }, [game.level, game.currentStreak]);
+
+  // Toggle favorite word in Graphite's Journal
+  const handleToggleJournalFavorite = useCallback((word: string) => {
+    const updated = toggleFavoriteWord(word);
+    setJournalWords(updated);
+    updatePlayerGlobalScore(
+      game.level,
+      game.currentStreak,
+      undefined,
+      undefined,
+      toCompactJournal(updated)
+    );
+  }, [game.level, game.currentStreak]);
+
+  // Record played word to journal and sync whenever a game concludes
+  const lastRecordedWordRef = useRef<string>('');
+  useEffect(() => {
+    if ((game.status === 'WON' || game.status === 'LOST') && game.word) {
+      const recordKey = `${game.word}_${game.level}_${game.status}`;
+      if (lastRecordedWordRef.current === recordKey) return;
+      lastRecordedWordRef.current = recordKey;
+
+      const updated = recordPlayedWord({
+        word: game.word,
+        category: game.category,
+        clue: game.clue,
+        extraClue: game.extraClue,
+        status: game.status,
+        level: game.level
+      });
+      setJournalWords(updated);
+      updatePlayerGlobalScore(
+        game.level,
+        game.currentStreak,
+        undefined,
+        undefined,
+        toCompactJournal(updated)
+      );
+    } else if (game.status === 'PLAYING') {
+      lastRecordedWordRef.current = '';
+    }
+  }, [game.status, game.word, game.category, game.clue, game.extraClue, game.level, game.currentStreak]);
 
   // Android back gesture & browser history management for all modals
   const isClosingViaPopstateRef = useRef<boolean>(false);
@@ -872,22 +933,36 @@ const App: React.FC = () => {
                <h3 className="font-heading text-xl sm:text-2xl text-slate-900 dark:text-white flex items-center gap-2">
                  <span>📖</span> Graphite's Journal
                </h3>
-               <div className="flex items-center gap-3 mt-2 text-xs font-bold text-slate-700 dark:text-slate-300 glass-pill p-2 rounded-xl">
+               <div className="flex items-center gap-2 sm:gap-3 mt-2 text-[11px] sm:text-xs font-bold text-slate-700 dark:text-slate-300 glass-pill p-2 rounded-xl flex-wrap">
                  <div className="flex items-center gap-1">
-                   <span>🏆</span> <span>Unlocked: {Object.values(game.quests).filter(Boolean).length} / {Object.keys(game.quests).length}</span>
+                   <span>📖</span> <span>{journalWords.length} Words Logged</span>
                  </div>
                  <span className="text-slate-300 dark:text-slate-600">•</span>
                  <div className="flex items-center gap-1">
-                   <span>📚</span> <span>Solved: {solvedWords.length} words</span>
+                   <span>🏆</span> <span>Quests: {Object.values(game.quests).filter(Boolean).length}/{Object.keys(game.quests).length}</span>
+                 </div>
+                 <span className="text-slate-300 dark:text-slate-600">•</span>
+                 <div className="flex items-center gap-1">
+                   <span>📚</span> <span>Solved: {solvedWords.length}</span>
                  </div>
                </div>
              </div>
 
              {/* Tab Bar */}
-             <div className="flex gap-2 mb-3 glass-pill p-1 rounded-2xl shrink-0">
+             <div className="flex gap-1.5 mb-3 glass-pill p-1 rounded-2xl shrink-0">
+               <button 
+                 onClick={() => setJournalTab('words')}
+                 className={`flex-1 py-1.5 px-2 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
+                   journalTab === 'words' 
+                     ? 'glass-pill-dark text-white shadow-md' 
+                     : 'text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800/60'
+                 }`}
+               >
+                 <span>📖</span> Words ({journalWords.length})
+               </button>
                <button 
                  onClick={() => setJournalTab('powers')}
-                 className={`flex-1 py-1.5 px-3 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                 className={`flex-1 py-1.5 px-2 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
                    journalTab === 'powers' 
                      ? 'glass-pill-dark text-white shadow-md' 
                      : 'text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800/60'
@@ -897,7 +972,7 @@ const App: React.FC = () => {
                </button>
                <button 
                  onClick={() => setJournalTab('trophies')}
-                 className={`flex-1 py-1.5 px-3 rounded-lg text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1.5 ${
+                 className={`flex-1 py-1.5 px-2 rounded-xl text-xs sm:text-sm font-bold uppercase tracking-wider transition-all flex items-center justify-center gap-1 ${
                    journalTab === 'trophies' 
                      ? 'glass-pill-dark text-white shadow-md' 
                      : 'text-slate-700 dark:text-slate-300 hover:bg-white/60 dark:hover:bg-slate-800/60'
@@ -908,8 +983,13 @@ const App: React.FC = () => {
              </div>
 
              {/* Tab Content Area */}
-             <div className="space-y-3 overflow-y-auto pr-1 flex-1">
-               {journalTab === 'powers' ? (
+             <div className="overflow-y-auto pr-1 flex-1 flex flex-col min-h-0">
+               {journalTab === 'words' ? (
+                 <JournalCodexView 
+                   records={journalWords} 
+                   onToggleFavorite={handleToggleJournalFavorite} 
+                 />
+               ) : journalTab === 'powers' ? (
                  <>
                    {/* Power-Up Quests */}
                    <div className="text-[11px] font-black uppercase text-amber-800 dark:text-amber-300 tracking-wider mb-1">
@@ -1171,26 +1251,32 @@ const App: React.FC = () => {
                  <span>📚</span> Powered by Princeton WordNet® (73,000+ Words)
                </div>
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full mt-2">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full mt-2 flex-wrap">
               <button 
                 onClick={() => startNewGame()} 
-                className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all"
+                className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-7 py-3 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all"
               >
                  Play Level {game.level}
               </button>
               <button 
                 onClick={() => setIsDuelHubOpen(true)}
-                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-6 py-2.5 sm:py-3 rounded-full shadow-md transition-all flex flex-col items-center justify-center active:scale-98"
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-5 py-2.5 rounded-full shadow-md transition-all flex flex-col items-center justify-center active:scale-98"
               >
                 <span className="text-sm sm:text-base font-extrabold leading-tight flex items-center gap-1.5">
                   🥊 Pointless Duel
                 </span>
-                <span className="text-[10px] font-black uppercase tracking-widest text-amber-100/90 leading-none mt-0.5">
+                <span className="text-[9px] font-black uppercase tracking-widest text-amber-100/90 leading-none mt-0.5">
                   Beta
                 </span>
               </button>
-              <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5">
-                👑 Global Scores
+              <button 
+                onClick={() => { soundService.playPop(); setIsQuestModalOpen(true); }} 
+                className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-5 py-2.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5"
+              >
+                <span>📖</span> Journal ({journalWords.length})
+              </button>
+              <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-5 py-2.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5">
+                <span>👑</span> Scores
               </button>
             </div>
 
