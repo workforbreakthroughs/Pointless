@@ -1251,32 +1251,26 @@ const App: React.FC = () => {
                  <span>📚</span> Powered by Princeton WordNet® (73,000+ Words)
                </div>
             </div>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2.5 sm:gap-3 w-full mt-2 flex-wrap">
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3.5 w-full mt-2">
               <button 
                 onClick={() => startNewGame()} 
-                className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-7 py-3 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all"
+                className="w-full sm:w-auto glass-pill-dark text-white text-base sm:text-xl px-8 py-3.5 rounded-full font-heading shadow-xl btn-press hover:bg-slate-800 transition-all"
               >
                  Play Level {game.level}
               </button>
               <button 
                 onClick={() => setIsDuelHubOpen(true)}
-                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-5 py-2.5 rounded-full shadow-md transition-all flex flex-col items-center justify-center active:scale-98"
+                className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-6 py-2.5 sm:py-3 rounded-full shadow-md transition-all flex flex-col items-center justify-center active:scale-98"
               >
                 <span className="text-sm sm:text-base font-extrabold leading-tight flex items-center gap-1.5">
                   🥊 Pointless Duel
                 </span>
-                <span className="text-[9px] font-black uppercase tracking-widest text-amber-100/90 leading-none mt-0.5">
+                <span className="text-[10px] font-black uppercase tracking-widest text-amber-100/90 leading-none mt-0.5">
                   Beta
                 </span>
               </button>
-              <button 
-                onClick={() => { soundService.playPop(); setIsQuestModalOpen(true); }} 
-                className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-5 py-2.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5"
-              >
-                <span>📖</span> Journal ({journalWords.length})
-              </button>
-              <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-5 py-2.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5">
-                <span>👑</span> Scores
+              <button onClick={() => setIsLeaderboardOpen(true)} className="w-full sm:w-auto glass-button text-slate-800 dark:text-slate-100 text-sm sm:text-base px-6 py-3.5 rounded-full font-bold shadow-xs hover:bg-white dark:hover:bg-slate-800 transition-all flex items-center justify-center gap-1.5">
+                👑 Global Scores
               </button>
             </div>
 
