@@ -1,6 +1,7 @@
 import React from 'react';
 import { DuelRecord } from '../services/duelService';
 import { getFlagEmoji, getOrCreatePlayerId } from '../services/firebaseService';
+import FluentPencil from './FluentPencil';
 
 interface DuelResultModalProps {
   duel: DuelRecord;
@@ -53,8 +54,8 @@ const DuelResultModal: React.FC<DuelResultModalProps> = ({
           isDraw ? 'bg-gradient-to-b from-blue-500 to-blue-600' :
           'bg-gradient-to-b from-slate-800 to-slate-900'
         }`}>
-          <div className="text-4xl sm:text-5xl mb-1 animate-bounce">
-            {isWon ? '🏆' : isDraw ? '🤝' : '✏️'}
+          <div className="text-4xl sm:text-5xl mb-1 flex items-center justify-center">
+            {isWon ? '🏆' : isDraw ? '🤝' : <FluentPencil size="lg" className="animate-bounce" isHellMode={true} />}
           </div>
           <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight">
             {isWon ? 'DUEL VICTORY!' : isDraw ? 'POINTLESS DUEL DRAW' : 'GRAPHITE HAS BEEN HUMBLED'}

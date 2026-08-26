@@ -34,6 +34,7 @@ import { DuelRecord, PlayerDuelStats, getPlayerDuelStats, createDuelChallenge } 
 import { soundService } from './services/soundService';
 import { AudioSettingsModal } from './components/AudioSettingsModal';
 import { themeService, ResolvedTheme } from './services/themeService';
+import { FluentPencil } from './components/FluentPencil';
 
 const MAX_MISTAKES = 7;
 const STORAGE_KEY = 'pointless_game_v11_pro';
@@ -1219,11 +1220,11 @@ const App: React.FC = () => {
           <div className="animate-pop text-center w-full max-w-2xl mx-auto flex flex-col items-center justify-center my-auto py-6 px-2 gap-4">
             <div 
               onClick={handlePencilTap}
-              className="text-6xl sm:text-8xl mb-1 animate-bounce cursor-pointer select-none active:scale-90 transition-transform" 
+              className="mb-1 animate-bounce cursor-pointer select-none active:scale-90 transition-transform flex items-center justify-center" 
               style={{ animationDuration: '3s' }}
               title={isHellMode ? "Pencil (Double-tap in Hell Mode to unleash God Mode)" : "Graphite"}
             >
-              ✏️
+              <FluentPencil size="hero" isGodMode={isGodMode} isHellMode={isHellMode} />
             </div>
             <h2 className={`text-3xl sm:text-5xl font-heading tracking-tight ${isGodMode ? 'text-sky-500 dark:text-sky-400' : isHellMode ? 'text-red-500 dark:text-red-400' : 'text-slate-900 dark:text-white'}`}>
               {isGodMode ? '⚡ God Mode 👑' : isHellMode ? 'Hell Mode' : 'Help Graphite.'}
@@ -1309,7 +1310,9 @@ const App: React.FC = () => {
                 <PencilVisual mistakes={0} maxMistakes={10} status="LOADING" />
              </div>
              <div className="text-center">
-                <div className="text-4xl sm:text-6xl mb-2">✏️</div>
+                <div className="mb-2 flex items-center justify-center">
+                  <FluentPencil size="xl" className="animate-bounce" />
+                </div>
                 <p className="text-xl sm:text-3xl font-heading text-slate-700 dark:text-slate-200 tracking-wide uppercase">Sharpening for Level {game.level}...</p>
              </div>
           </div>
@@ -1484,8 +1487,9 @@ const App: React.FC = () => {
                   </div>
                 ) : game.status === 'LOST' ? (
                   <div className="glass-panel text-slate-900 dark:text-slate-100 rounded-3xl p-3 sm:p-6 landscape:p-2.5 text-center animate-in zoom-in shadow-2xl my-1 sm:my-2 max-w-xl mx-auto border border-white/90 dark:border-slate-700">
-                    <h3 className="text-xl sm:text-3xl font-heading text-red-500 dark:text-red-400 mb-0.5">
-                      {isHellMode ? 'Out of Chances' : 'Snapped! ✏️'}
+                    <h3 className="text-xl sm:text-3xl font-heading text-red-500 dark:text-red-400 mb-0.5 flex items-center justify-center gap-2">
+                      <span>{isHellMode ? 'Out of Chances' : 'Snapped!'}</span>
+                      {!isHellMode && <FluentPencil size="sm" isHellMode={true} />}
                     </h3>
                     <p className="text-slate-700 dark:text-slate-300 mb-2 sm:mb-3 text-xs sm:text-base font-bold">
                       Answer: <span className="text-amber-600 dark:text-amber-400 font-black uppercase tracking-wider">{game.word}</span>
@@ -1656,8 +1660,8 @@ const App: React.FC = () => {
                 
                 {/* Modal Header */}
                 <div className="flex items-center justify-between border-b border-slate-200/80 dark:border-slate-700/80 pb-2.5 sm:pb-3 shrink-0">
-                  <div className="flex items-center gap-2">
-                    <span className="text-2xl sm:text-3xl shrink-0">✏️</span>
+                  <div className="flex items-center gap-2.5">
+                    <FluentPencil size="md" isHellMode={isHellMode} className="shrink-0" />
                     <div>
                       <h3 className="text-lg sm:text-2xl font-heading text-red-500 dark:text-red-400 leading-none">Snapped!</h3>
                       <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400 dark:text-slate-400 mt-0.5 block">Level {game.level} Unsuccessful</span>

@@ -11,6 +11,7 @@ import { soundService } from '../services/soundService';
 import PhraseDisplay from './PhraseDisplay';
 import Keyboard from './Keyboard';
 import PencilVisual from './KangarooVisual';
+import FluentPencil from './FluentPencil';
 
 interface DuelGameScreenProps {
   duel: DuelRecord;
@@ -316,7 +317,16 @@ const DuelGameScreen: React.FC<DuelGameScreenProps> = ({
                 : 'bg-rose-50 border-rose-300 text-rose-900'
             }`}>
               <div className="flex items-center gap-2 font-black text-sm sm:text-base">
-                <span>{wordStatus === 'WON' ? '🎉 Word Solved!' : '✏️ Word Failed!'}</span>
+                <span className="flex items-center gap-1.5">
+                  {wordStatus === 'WON' ? (
+                    <>🎉 Word Solved!</>
+                  ) : (
+                    <>
+                      <FluentPencil size="xs" isHellMode={true} />
+                      <span>Word Failed!</span>
+                    </>
+                  )}
+                </span>
                 <span className="font-mono bg-white px-2 py-0.5 rounded border shadow-2xs">
                   +{wordResults[wordResults.length - 1]?.score || 0} pts
                 </span>
