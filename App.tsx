@@ -1855,7 +1855,7 @@ const App: React.FC = () => {
       />
 
       <footer className="mt-auto py-1 text-slate-400 font-bold text-[10px] sm:text-xs uppercase tracking-widest shrink-0 text-center">
-        Pointless Studios © 2025 • WordNet 3.1 Copyright © Princeton University
+        Cab&Can Studios © 2025 • WordNet 3.1 Copyright © Princeton University
       </footer>
     </div>
   );
